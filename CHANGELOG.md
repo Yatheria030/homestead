@@ -1,37 +1,55 @@
-# Änderungen
+# Changelog
 
-Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
-die Versionierung an [Semantic Versioning](https://semver.org/lang/de/).
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
+follows [Semantic Versioning](https://semver.org/).
+
+## [0.3.0] – 2026-09-06
+
+### Changed
+
+* Renamed the project to **Homestead**; the database file is now `homestead.db`.
+
+### Added
+
+* MIT license, security policy, changelog.
+* English README with a German translation alongside it.
+* CI builds the frontend and the container and checks that the API comes up.
+* Release workflow publishes a multi-arch image to GHCR on every tag.
+
+### Removed
+
+* The seed data no longer contains real household figures — it's an invented example
+  household now.
 
 ## [0.2.0] – 2026-09-06
 
-### Geändert
+### Changed
 
-* Der Vorrat denkt in **Kaufrhythmen** statt in Beständen: Haltbarkeit einer Packung mal
-  Kaufmenge ergibt das Intervall und daraus den nächsten Kauftermin.
-* Reste aus dem letzten Einkauf verschieben den nächsten Termin automatisch.
-* Zeilen zeigen Rhythmus und Countdown; der Balken zeigt die Position im Kaufzyklus.
-* Die Einkaufsliste schlägt die übliche Kaufmenge vor.
+* Supplies think in **buying rhythms** rather than stock levels: how long a pack lasts
+  times how many you buy gives the interval, and from that the next buying date.
+* Leftovers from the last purchase shift the next date automatically.
+* Rows show rhythm and countdown; the bar shows where you are in the cycle.
+* The shopping list suggests your usual purchase quantity.
 
-### Neu
+### Added
 
-* Haltbarkeit in Tagen, Wochen oder Monaten eingebbar.
-* Vorlauf je Artikel: so viele Tage vor dem Leerstand wird gekauft.
-* Bezugsquelle als Link und Preis pro Einheit direkt in der Zeile.
-* Begründung des Projekts in der README.
+* Pack duration can be entered in days, weeks or months.
+* Lead time per item: how many days before running out you want to buy.
+* Vendor link and price per unit right in the row.
 
 ## [0.1.0] – 2026-09-06
 
-### Neu
+### Added
 
-* Ausgaben mit Gesamtbetrag, eigenem Anteil und Ziel-Pocket, inline editierbar,
-  gruppierbar nach Pocket oder Kategorie.
-* Pocket-Ansicht mit Aufschlüsselung je Topf und „Plan kopieren“.
-* Vorrat mit Listen, Reichweite und Nachbestellpunkt.
-* Einkaufsliste nach Anbieter gebündelt.
-* Abos aus Ausgaben und Vorrat an einer Stelle.
-* Snapshot-System über die Online-Backup-API von SQLite.
-* Automatische Schema-Migration bestehender Datenbanken.
+* Expenses with full amount, personal share and target pocket, inline editable and
+  groupable by pocket or category.
+* Pocket view with a per-pot breakdown and "copy plan".
+* Supplies with lists, coverage and reorder point.
+* Shopping list grouped by vendor.
+* Subscriptions from both expenses and supplies in one place.
+* Snapshot system via SQLite's online backup API.
+* Automatic schema migration for existing databases.
 
-[0.2.0]: https://github.com/Yatheria030/haushalt/releases/tag/v0.2.0
-[0.1.0]: https://github.com/Yatheria030/haushalt/releases/tag/v0.1.0
+[0.3.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.3.0
+[0.2.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.2.0
+[0.1.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.1.0

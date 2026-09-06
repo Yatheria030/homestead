@@ -90,7 +90,7 @@ Stoppen mit `docker compose down`, die Daten bleiben erhalten.
 Die App bringt **keine Anmeldung** mit – sie ist als Werkzeug im eigenen Netz gedacht. Wer
 die Adresse erreicht, sieht alle Daten. Also entweder nur im Heimnetz betreiben, per VPN
 (WireGuard, Tailscale) erreichbar machen oder hinter einen Reverse Proxy mit
-Authentifizierung hängen. Details in [SECURITY.md](SECURITY.md).
+Authentifizierung hängen. Details in [SECURITY.md](SECURITY.md) (englisch).
 
 ## Daten und Backup
 

@@ -1,21 +1,22 @@
-# Sicherheit
+# Security
 
-## Die App bringt keine Anmeldung mit
+## There is no authentication
 
-Das ist Absicht: Sie ist als Werkzeug für den eigenen Haushalt im eigenen Netz gedacht.
-Wer die Adresse erreicht, sieht und ändert alle Daten – und die Daten sind Finanzdaten.
+That's deliberate: Homestead is meant as a tool for your own household on your own
+network. Anyone who can reach the address can read and change everything — and the data
+is financial data.
 
-**Nicht ungeschützt ins Internet stellen.** Sinnvolle Betriebsarten:
+**Do not expose it to the internet unprotected.** Sensible ways to run it:
 
-* nur im Heimnetz erreichbar (Standard, wenn der Port nicht weitergeleitet wird),
-* über einen VPN-Zugang ins Heimnetz (WireGuard, Tailscale),
-* hinter einem Reverse Proxy mit Authentifizierung (Caddy mit Basic Auth,
-  Authelia, oauth2-proxy).
+* reachable only on your LAN (the default, as long as you don't forward the port),
+* through a VPN into your network (WireGuard, Tailscale),
+* behind a reverse proxy that handles authentication (Caddy with basic auth, Authelia,
+  oauth2-proxy).
 
-Ebenfalls bedenken: Die Backup-Endpunkte können die gesamte Datenbank herunterladen und
-überschreiben. Sie unterliegen denselben Überlegungen wie der Rest der Anwendung.
+Also worth knowing: the backup endpoints can download and overwrite the entire database.
+They deserve the same consideration as the rest of the app.
 
-## Lücken melden
+## Reporting a vulnerability
 
-Wer ein Sicherheitsproblem findet: bitte per privatem Security Advisory über GitHub
-melden statt über ein öffentliches Issue.
+Please report security issues through a private GitHub security advisory rather than a
+public issue.

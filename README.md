@@ -1,179 +1,173 @@
-# Haushalt
+# Homestead
 
-Ein selbstgehostetes Werkzeug für zwei Dinge, die in jedem gemeinsamen Haushalt
-irgendwann unübersichtlich werden: **wer zahlt wofür wie viel** und **was muss wann
-nachgekauft werden**. Ein Docker-Container, eine SQLite-Datei, kein Konto bei irgendwem.
+*English · [Deutsch](README.de.md)*
 
-## Warum das Ganze
+A self-hosted tool for the two things that get murky in every shared household:
+**who pays what, and why** — and **what needs restocking, and when**. One Docker
+container, one SQLite file, no account anywhere.
 
-**Das Gemeinschaftskonto-Problem.** Zwei Leute, ein Haushalt: Miete, Nebenkosten, Strom,
-Versicherungen, Einkauf, Urlaubsrücklage. Irgendwann steht ein Dauerauftrag über 407,92 €
-aufs Gemeinschaftskonto – und drei Monate später weiß niemand mehr, warum ausgerechnet
-diese Zahl. Ist der Strom da drin? Zahlt der andere die Hausratversicherung, oder war das
-die Haftpflicht? Wer hat zuletzt was ausgelegt?
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20SQLite%20%C2%B7%20React-6366f1)
 
-Der Streitpunkt ist dabei selten die Fairness. Es ist die **Nachvollziehbarkeit**. Genau
-die geht in einer gewachsenen Excel als Erstes verloren: Formeln über drei Blätter, und
-eine Zahl ändern heißt hoffen, dass nichts kippt.
+## Why this exists
 
-Diese App macht die Kette sichtbar, in beide Richtungen:
+**The joint-account problem.** Two people, one household: rent, utilities, electricity,
+insurance, groceries, holiday savings. At some point there's a standing order for
+€407.92 into the joint account — and three months later nobody remembers why that exact
+number. Is electricity in there? Who covers the contents insurance, and who the
+liability one? Who last paid for what out of pocket?
+
+The friction is rarely about fairness. It's about **traceability** — and that is exactly
+what a spreadsheet loses first, once formulas span three sheets and changing one number
+means hoping nothing breaks.
+
+Homestead keeps the chain visible in both directions:
 
 ```
-Position → Gesamtbetrag → wer trägt welchen Anteil → auf welchen Topf geht das Geld
+line item → full amount → who covers which share → which pocket it goes to
 ```
 
-Jeder Pocket lässt sich aufklappen und zeigt, aus welchen Positionen sich sein Betrag
-zusammensetzt. Wird der Strom teurer, änderst du eine Zahl und siehst sofort, welcher
-Dauerauftrag um wie viel angepasst werden muss – nicht am Jahresende beim Nachrechnen.
-Positionen, die bewusst an den gemeinsamen Töpfen vorbeilaufen, bleiben sichtbar, zählen
-aber nicht in die Summe, damit der Gesamtbetrag exakt dem entspricht, was tatsächlich
-überwiesen wird.
+Every pocket can be opened up to show which line items make up its amount. When
+electricity gets more expensive, you change one number and immediately see which standing
+order needs adjusting — not at year-end while reconciling. Items that deliberately bypass
+the shared pots stay visible but are excluded from the total, so the total always matches
+what actually gets transferred.
 
-**Pockets als Einkommensverteiler.** Wenn die Bank Unterkonten kann (N26 Spaces, Bunq,
-Revolut Vaults, DKB, Trade Republic …), wird daraus ein Automatismus: Für jeden Topf
-einmal einen Dauerauftrag einrichten, und das Gehalt verteilt sich am Monatsanfang von
-selbst – Miete, Strom, KFZ, Urlaub, Gemeinschaftskonto. Was übrig bleibt, ist frei
-verfügbar, ohne Kopfrechnen.
+**Pockets as an income router.** If your bank does sub-accounts (N26 Spaces, Bunq,
+Revolut Vaults, Monzo Pots, Starling Spaces …), this becomes an automation: set up one
+standing order per pocket, and your salary distributes itself at the start of the month —
+rent, energy, car, holiday, joint account. Whatever's left is genuinely free to spend, no
+mental math required.
 
-Die App ist dabei der Ort, an dem der **Plan** steht; die Bank führt ihn nur aus. Ändert
-sich etwas, gibt „Plan kopieren“ die aktuelle Soll-Liste je Topf aus – daran passt man die
-Daueraufträge an, fertig. Kein Tabellenblatt, das keiner mehr anfassen will.
+Homestead holds the **plan**; the bank merely executes it. When something changes, "copy
+plan" hands you the current target amount per pocket — adjust the standing orders, done.
 
-**Und der gleiche Gedanke für Dinge statt Geld.** Katzenstreu, Futter, Filter, Zahnpasta:
-Sachen, die man in festem Rhythmus braucht und günstiger wird, wer auf Masse oder im Abo
-kauft. Der Vorrat rechnet aus Haltbarkeit und Kaufmenge den Kaufrhythmus aus, sagt, wann
-der nächste Einkauf ansteht, und bündelt alles Fällige zu einer Einkaufsliste je Anbieter.
-Bei Spar-Abos zeigt er außerdem, ob das Abo den echten Verbrauch überhaupt deckt – und was
-es gegenüber dem Normalpreis spart.
+**The same idea for things instead of money.** Cat litter, food, filters, toothpaste:
+stuff you need on a fixed rhythm, and which gets cheaper if you buy in bulk or by
+subscription. Homestead derives the buying rhythm from how long a pack lasts and how many
+you buy at a time, tells you when the next run is due, and bundles everything due into one
+shopping list per vendor. For subscriptions it also shows whether the delivery rate
+actually covers your consumption — and what it saves against the regular price.
 
-## Was drin ist
+## What's in it
 
-**Pockets** – jede Kostenposition hat einen Gesamtbetrag, deinen Anteil (Standard 50 %)
-und ein Ziel-Pocket. Die App rechnet daraus, was pro Monat auf welchen Topf geht.
-Jahres- und Quartalsbeiträge werden dabei automatisch auf den Monat umgelegt. Pockets
-lassen sich auf „zählt nicht zur Summe“ stellen – für Posten, die direkt zwischen euch
-laufen statt über einen gemeinsamen Topf.
+**Expenses** — every line item has a full amount, your share (50 % by default) and a
+target pocket. Homestead works out what goes to which pot each month; yearly and quarterly
+bills are spread across months automatically. Pockets can be marked as *not counting
+toward the total*, for items that run directly between the two of you.
 
-**Vorrat** – Verbrauchsgüter im Rhythmus statt im Kopf: Katzenstreu, Futter, Filter,
-Zahnpasta, Handseife und so weiter. Zwei Angaben genügen – **wie lange eine Packung hält**
-und **wie viele du pro Einkauf kaufst**. Daraus wird der Kaufrhythmus („2 Packungen alle
-6 Wochen“) und der nächste Kauftermin. Wer auf Masse kauft, stellt einfach die Kaufmenge
-hoch und sieht sofort, wie weit der Rhythmus dadurch auseinanderrückt. Listen (Katze, Bad,
-Küche …) sortieren das Ganze wie in einer Aufgaben-App.
+**Pockets** — a breakdown per pot: how much, what it consists of, what share of the total
+it is. "Copy plan" puts the transfer list on your clipboard.
 
-**Einkaufsliste** – alles, was seinen Kauftermin erreicht hat, gebündelt nach Anbieter,
-mit Menge und Summe. Abhaken bucht den Kauf und startet den Rhythmus neu.
+**Supplies** — consumables by rhythm rather than by memory. Two inputs are enough: **how
+long one pack lasts** and **how many you buy per run**. From that comes the rhythm
+("3 packs every ~5 weeks") and the next buying date. Buying in bulk simply means raising
+the quantity and watching the rhythm stretch. Lists (Cat, Bathroom, Kitchen …) organise it
+like a task app.
 
-**Abos** sammelt beides an einer Stelle: laufende Kosten aus den Ausgaben plus die
-Vorratsartikel im Abo, hochgerechnet auf Monat und Jahr – inklusive der Frage, ob ein
-Spar-Abo den tatsächlichen Verbrauch deckt und was es gegenüber dem Normalpreis spart.
+**Shopping list** — everything that has reached its buying date, grouped by vendor, with
+quantity and total. Ticking an item books the purchase and restarts its rhythm.
 
-## Starten
+**Subscriptions** — recurring costs from both expenses and supplies in one place, per
+month and per year, including whether a subscription covers real consumption and what it
+saves.
+
+## Quick start
 
 ```bash
+git clone https://github.com/Yatheria030/homestead.git
+cd homestead
+cp .env.example .env
 docker compose up -d --build
 ```
 
-Danach läuft die App auf **http://localhost:8099** (Port über `WEB_PORT` in der `.env`
-änderbar). Beim ersten Start werden die Positionen aus der Excel als Startdaten angelegt,
-dazu ein Beispiel-Vorrat – beides in der App frei änder- und löschbar.
+Then open **http://localhost:8080** (change the port via `WEB_PORT` in `.env`). On first
+start it seeds an example household so the UI isn't empty — replace those numbers with
+your own, or set `SEED_ON_START=false` to start blank.
 
-Stoppen mit `docker compose down`, die Daten bleiben erhalten.
+Stop with `docker compose down`; your data stays.
 
-## Sicherheit
+## Security
 
-Die App bringt **keine Anmeldung** mit – sie ist als Werkzeug im eigenen Netz gedacht. Wer
-die Adresse erreicht, sieht alle Daten. Also entweder nur im Heimnetz betreiben, per VPN
-(WireGuard, Tailscale) erreichbar machen oder hinter einen Reverse Proxy mit
-Authentifizierung hängen. Details in [SECURITY.md](SECURITY.md).
+Homestead ships **without authentication** — it's built as a tool for your own network.
+Anyone who can reach the address can see and change everything, and the data is financial
+data. So: keep it on your LAN, reach it through a VPN (WireGuard, Tailscale), or put it
+behind a reverse proxy that handles auth (Caddy with basic auth, Authelia, oauth2-proxy).
+See [SECURITY.md](SECURITY.md).
 
-## Daten und Backup
+## Data and backups
 
-Alles liegt in einer SQLite-Datei: `./data/haushalt.db`, die Snapshots daneben in
-`./data/backups/`. Neu anfangen heißt: Datei löschen und neu starten – dann wird wieder
-geseedet (abschaltbar über `SEED_ON_START=false`).
+Everything lives in one SQLite file, `./data/homestead.db`, with snapshots next to it in
+`./data/backups/`. **Settings → Backups** gives you a full snapshot system:
 
-Unter **Einstellungen → Backups** gibt es ein vollständiges Snapshot-System:
+* **Automatic** every 24 hours (`BACKUP_INTERVAL_HOURS`), keeping the last 14
+  (`BACKUP_KEEP`). Manual snapshots are never pruned.
+* **Manual** at any time, with a note.
+* **Download** as a `.db` file — for your NAS or cloud.
+* **Upload** a downloaded file back in (validated as a real SQLite database).
+* **Restore** with a safety net: the current state is snapshotted before anything is
+  overwritten.
 
-* **Automatisch** alle 24 Stunden (`BACKUP_INTERVAL_HOURS`), die letzten 14 bleiben
-  erhalten (`BACKUP_KEEP`). Manuelle Snapshots werden nie automatisch gelöscht.
-* **Von Hand** jederzeit, mit Notiz.
-* **Herunterladen** als `.db` – etwa auf die NAS oder in die Cloud.
-* **Einspielen** einer heruntergeladenen Datei per Upload (wird auf ein echtes
-  SQLite-Format geprüft).
-* **Zurückspielen** mit Sicherheitsnetz: bevor ein Snapshot eingespielt wird, sichert die
-  App automatisch den aktuellen Stand.
+Snapshots go through SQLite's online backup API, so they stay consistent even while the
+app is being written to — unlike copying the file.
 
-Snapshots laufen über SQLites Online-Backup-API, sind also auch dann konsistent, wenn
-gleichzeitig geschrieben wird – anders als ein bloßes Kopieren der Datei.
-
-## Aufbau
-
-Ein Container, ein Port. FastAPI serviert die API und das gebaute Frontend.
+## How it works
 
 ```
-Dockerfile            Frontend bauen (Node) → API-Image (Python)
+Dockerfile            builds the frontend (Node), then the API image (Python)
 docker-compose.yml
 api/app/
-  models.py           Kategorien, Pockets, Ausgaben, Listen, Vorrat, Kaufhistorie
-  schemas.py          Ein-/Ausgabe + berechnete Felder (Anteil, Reichweite, Abo-Deckung)
+  models.py           categories, pockets, expenses, lists, supplies, purchases
+  schemas.py          input/output plus derived values (share, rhythm, coverage)
   routers/            /expenses, /supplies, /supply-lists, /shopping-list,
                       /pockets, /categories, /summary, /backups
-  backup.py           Snapshots über die Online-Backup-API von SQLite
-  migrate.py          ergänzt fehlende Spalten in bestehenden Datenbanken
-  seed.py             Startdaten aus der Excel + Beispiel-Vorrat
+  backup.py           snapshots via SQLite's online backup API
+  migrate.py          adds missing columns to existing databases
+  seed.py             example household and supplies
 web/src/
-  pages/              Übersicht, Ausgaben, Pockets, Vorrat, Einkaufsliste, Abos,
-                      Einstellungen
-  components/         Grid mit Inline-Editing, Vorrats-Detailpanel, Karten, Chips
+  pages/              overview, expenses, pockets, supplies, shopping list,
+                      subscriptions, settings
+  components/         inline-editable grid, supply detail panel, cards, chips
 ```
 
-Die API ist unter http://localhost:8099/api/docs dokumentiert.
+The API documents itself at `/api/docs`. The interface is currently German only.
 
-## Rechenregeln
+### The maths
 
-* **Dein Anteil** = Gesamtbetrag × Anteil in % (Standard 50 %).
-* **Intervall** (monatlich/quartalsweise/jährlich) wird für alle Summen auf einen Monat
-  umgerechnet.
-* Summiert wird ungerundet, gerundet wird erst am Ende – kaufmännisch auf Cent, damit
-  dieselben Beträge herauskommen wie in der Excel (Gesamt 1.259,66 €).
-* Pockets ohne „zählt zur Summe“ bleiben aus der Gesamtsumme raus, werden aber separat
-  ausgewiesen.
-### Vorrat
+**Money**
 
-* **Kaufrhythmus** = Haltbarkeit einer Packung × Kaufmenge. Ein Sack Katzenstreu hält
-  3 Wochen, du kaufst zwei: alle 6 Wochen.
-* **Nächster Kauftermin** = letzter Einkauf + Rhythmus − Vorlauf. Der Vorlauf sind die
-  Tage, die du vor dem Leerstand kaufen willst (Lieferzeit, Puffer).
-* **Reste zählen mit**: War beim Kauf noch etwas da, verschiebt sich der nächste Termin
-  entsprechend nach hinten. Deshalb bleibt der Plan auch dann richtig, wenn du mal früher
-  oder später einkaufst.
-* **Status**: überfällig · jetzt kaufen (Vorlauf erreicht) · bald dran · im Plan.
-* **Kaufmenge** ist gleichzeitig der Vorschlag auf der Einkaufsliste – so viel, wie du
-  ohnehin kaufst.
-* **Kosten pro Monat** = Packungspreis / Tage pro Packung × 30,44.
-* **Abo-Deckung** = gelieferte Menge pro Tag ÷ verbrauchte Menge pro Tag. 100 % heißt:
-  das Abo trifft den Verbrauch genau, darunter kaufst du regelmäßig dazu.
-* **Ersparnis pro Jahr** = (Normalpreis − Abopreis) × 365 / Tage pro Packung.
+* **Your share** = full amount × your percentage (50 % by default).
+* **Interval** (monthly / quarterly / yearly) is normalised to one month for every total.
+* Sums are added up unrounded and rounded only at the end, half-up to the cent.
+* Pockets without *counts toward total* are reported separately, not in the total.
 
-## Weiterentwicklung
+**Supplies**
 
-Lokal ohne Docker:
+* **Rhythm** = how long one pack lasts × how many you buy per run. A bag of litter lasts
+  3 weeks, you buy two: every 6 weeks.
+* **Next buying date** = last purchase + rhythm − lead time, where lead time is how many
+  days ahead of running out you want to buy.
+* **Leftovers count**: if something was still in stock when you bought, the next date
+  shifts accordingly — so the plan survives buying early or late.
+* **Cost per month** = pack price / days per pack × 30.44.
+* **Subscription coverage** = delivered per day ÷ consumed per day. 100 % means the
+  subscription matches consumption exactly.
+* **Yearly saving** = (regular price − subscription price) × 365 / days per pack.
+
+## Development
+
+Without Docker:
 
 ```bash
 cd api && pip install -r requirements.txt && uvicorn app.main:app --reload
 cd web && npm install && npm run dev
 ```
 
-Das Frontend läuft dann auf Port 5173 und spricht über einen Proxy mit der API auf 8000.
+The frontend then runs on port 5173 and proxies to the API on 8000.
 
-Wenn das Tool wächst und SQLite nicht mehr reicht, genügt eine andere `DATABASE_URL`
-(z. B. Postgres) – das Datenmodell liegt in SQLAlchemy und ist portabel.
+If SQLite ever stops being enough, a different `DATABASE_URL` (Postgres, say) is all it
+takes — the data model is plain SQLAlchemy.
 
-Die Startdaten in `api/app/seed.py` sind erfundene Beispielwerte. Beim ersten Start werden
-sie angelegt, damit die Oberfläche nicht leer ist; danach ersetzt man sie einfach durch die
-eigenen Zahlen (oder schaltet sie mit `SEED_ON_START=false` von vornherein ab).
+## License
 
-## Lizenz
-
-[MIT](LICENSE) – benutz es, ändere es, mach damit was du willst.
+[MIT](LICENSE) — use it, change it, do what you like with it.
