@@ -1,0 +1,24 @@
+services:
+  haushalt:
+    build: .
+    container_name: haushalt
+    restart: unless-stopped
+    environment:
+      # SQLite-Datei im Volume - Backup = diese Datei kopieren
+      DATABASE_URL: sqlite:////data/haushalt.db
+      SEED_ON_START: ${SEED_ON_START:-true}
+      # Snapshots: alle X Stunden automatisch, die letzten N automatischen bleiben
+      BACKUP_DIR: /data/backups
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      TZ: Europe/Berlin
+    volumes:
+      - ./data:/data
+    ports:
+      - "${WEB_PORT:-8080}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

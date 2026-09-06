@@ -1,0 +1,159 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "./api";
+import type { Category, Expense, Pocket, Supply, SupplyList } from "../types";
+
+export const useSummary = () => useQuery({ queryKey: ["summary"], queryFn: api.summary });
+export const useCategories = () =>
+  useQuery({ queryKey: ["categories"], queryFn: api.categories });
+export const usePockets = () => useQuery({ queryKey: ["pockets"], queryFn: api.pockets });
+export const useExpenses = () => useQuery({ queryKey: ["expenses"], queryFn: api.expenses });
+export const useSupplies = () => useQuery({ queryKey: ["supplies"], queryFn: api.supplies });
+export const useSupplyLists = () =>
+  useQuery({ queryKey: ["supply-lists"], queryFn: api.supplyLists });
+export const useShoppingList = () =>
+  useQuery({ queryKey: ["shopping-list"], queryFn: api.shoppingList });
+export const useBackups = () => useQuery({ queryKey: ["backups"], queryFn: api.backups });
+
+/** Nach jeder Aenderung auch die Auswertung neu ziehen. */
+function useInvalidating<TArgs extends unknown[], TResult>(
+  fn: (...args: TArgs) => Promise<TResult>,
+  keys: string[],
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (args: TArgs) => fn(...args),
+    onSuccess: () => {
+      for (const key of [...keys, "summary"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
+    },
+  });
+}
+
+export function useExpenseActions() {
+  const update = useInvalidating(
+    (id: number, body: Partial<Expense>) => api.updateExpense(id, body),
+    ["expenses"],
+  );
+  const create = useInvalidating(
+    (body: Partial<Expense>) => api.createExpense(body),
+    ["expenses"],
+  );
+  const remove = useInvalidating((id: number) => api.deleteExpense(id), ["expenses"]);
+  return {
+    update: (id: number, body: Partial<Expense>) => update.mutate([id, body]),
+    create: (body: Partial<Expense>) => create.mutate([body]),
+    remove: (id: number) => remove.mutate([id]),
+  };
+}
+
+export function useSupplyActions() {
+  const update = useInvalidating(
+    (id: number, body: Partial<Supply>) => api.updateSupply(id, body),
+    ["supplies", "shopping-list"],
+  );
+  const create = useInvalidating(
+    (body: Partial<Supply>) => api.createSupply(body),
+    ["supplies", "shopping-list"],
+  );
+  const remove = useInvalidating(
+    (id: number) => api.deleteSupply(id),
+    ["supplies", "shopping-list"],
+  );
+  const restock = useInvalidating(
+    (id: number, body?: { packs?: number; price?: number }) => api.restock(id, body),
+    ["supplies", "shopping-list"],
+  );
+  const setStock = useInvalidating(
+    (id: number, packs: number) => api.setStock(id, packs),
+    ["supplies", "shopping-list"],
+  );
+  return {
+    update: (id: number, body: Partial<Supply>) => update.mutate([id, body]),
+    create: (body: Partial<Supply>) => create.mutate([body]),
+    remove: (id: number) => remove.mutate([id]),
+    restock: (id: number, packs = 1) => restock.mutate([id, { packs }]),
+    setStock: (id: number, packs: number) => setStock.mutate([id, packs]),
+  };
+}
+
+export function useSupplyListActions() {
+  const create = useInvalidating(
+    (body: Partial<SupplyList>) => api.createSupplyList(body),
+    ["supply-lists", "supplies"],
+  );
+  const update = useInvalidating(
+    (id: number, body: Partial<SupplyList>) => api.updateSupplyList(id, body),
+    ["supply-lists", "supplies"],
+  );
+  const remove = useInvalidating(
+    (id: number) => api.deleteSupplyList(id),
+    ["supply-lists", "supplies"],
+  );
+  return {
+    create: (body: Partial<SupplyList>) => create.mutate([body]),
+    update: (id: number, body: Partial<SupplyList>) => update.mutate([id, body]),
+    remove: (id: number) => remove.mutate([id]),
+  };
+}
+
+export function useMasterActions() {
+  const createCategory = useInvalidating(
+    (body: Partial<Category>) => api.createCategory(body),
+    ["categories", "expenses"],
+  );
+  const updateCategory = useInvalidating(
+    (id: number, body: Partial<Category>) => api.updateCategory(id, body),
+    ["categories", "expenses"],
+  );
+  const deleteCategory = useInvalidating(
+    (id: number) => api.deleteCategory(id),
+    ["categories", "expenses"],
+  );
+  const createPocket = useInvalidating(
+    (body: Partial<Pocket>) => api.createPocket(body),
+    ["pockets", "expenses"],
+  );
+  const updatePocket = useInvalidating(
+    (id: number, body: Partial<Pocket>) => api.updatePocket(id, body),
+    ["pockets", "expenses"],
+  );
+  const deletePocket = useInvalidating(
+    (id: number) => api.deletePocket(id),
+    ["pockets", "expenses"],
+  );
+  return {
+    createCategory: (body: Partial<Category>) => createCategory.mutate([body]),
+    updateCategory: (id: number, body: Partial<Category>) => updateCategory.mutate([id, body]),
+    deleteCategory: (id: number) => deleteCategory.mutate([id]),
+    createPocket: (body: Partial<Pocket>) => createPocket.mutate([body]),
+    updatePocket: (id: number, body: Partial<Pocket>) => updatePocket.mutate([id, body]),
+    deletePocket: (id: number) => deletePocket.mutate([id]),
+  };
+}
+
+
+export function useBackupActions() {
+  const queryClient = useQueryClient();
+  const everything = () => queryClient.invalidateQueries();
+
+  const create = useMutation({
+    mutationFn: (note?: string) => api.createBackup(note),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backups"] }),
+  });
+  const remove = useMutation({
+    mutationFn: (name: string) => api.deleteBackup(name),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backups"] }),
+  });
+  const upload = useMutation({
+    mutationFn: (file: File) => api.uploadBackup(file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["backups"] }),
+  });
+  // Nach dem Zurückspielen ist jede geladene Liste veraltet
+  const restore = useMutation({
+    mutationFn: (name: string) => api.restoreBackup(name),
+    onSuccess: everything,
+  });
+
+  return { create, remove, upload, restore };
+}

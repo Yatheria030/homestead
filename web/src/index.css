@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Farbtokens: die --color-* zeigen auf Variablen, die im Dark Mode getauscht werden */
+@theme {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --font-sans: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+:root {
+  --canvas: #f4f5f7;
+  --surface: #ffffff;
+  --raised: #fbfbfc;
+  --line: #e3e6ea;
+  --line-soft: #eef0f3;
+  --ink: #171a1f;
+  --muted: #6a7180;
+  --faint: #9aa1af;
+  --brand: #4f46e5;
+  --brand-soft: #eef0ff;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.04);
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #0b0d12;
+  --surface: #12151c;
+  --raised: #171b24;
+  --line: #242a36;
+  --line-soft: #1c212b;
+  --ink: #e7eaf0;
+  --muted: #929bad;
+  --faint: #6d7688;
+  --brand: #7c7bf7;
+  --brand-soft: #1c1f36;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+}
+
+/* Farbige Chips: --chip wird pro Element inline gesetzt */
+.chip {
+  color: var(--chip);
+  background: color-mix(in srgb, var(--chip) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chip) 22%, transparent);
+}
+
+.dark .chip {
+  color: color-mix(in srgb, var(--chip) 72%, white);
+  background: color-mix(in srgb, var(--chip) 20%, transparent);
+  border-color: color-mix(in srgb, var(--chip) 32%, transparent);
+}
+
+.dot {
+  background: var(--chip);
+}
+
+/* Dezente Scrollbars, damit die Tabellen ruhig wirken */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted) 30%, transparent);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
+  background-clip: content-box;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Zellen-Inputs sollen wie Text aussehen, bis man sie anfasst */
+.cell-input {
+  background: transparent;
+  outline: none;
+  width: 100%;
+}
+
+.cell-input:focus {
+  background: var(--surface);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.28s ease-out both;
+}
