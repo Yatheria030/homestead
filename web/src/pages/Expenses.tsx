@@ -303,7 +303,7 @@ export function Expenses({ onMenu }: { onMenu: () => void }) {
 
         <p className="mt-3 text-[12px] text-faint">
           Zellen sind direkt anklickbar. Pockets ohne Häkchen „zählt zur Summe“ bleiben aus
-          der Gesamtsumme raus – für Posten, die direkt untereinander laufen.
+          der Gesamtsumme raus – praktisch für Posten, die direkt untereinander laufen.
         </p>
       </div>
     </>

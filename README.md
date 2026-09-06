@@ -80,6 +80,13 @@ dazu ein Beispiel-Vorrat – beides in der App frei änder- und löschbar.
 
 Stoppen mit `docker compose down`, die Daten bleiben erhalten.
 
+## Sicherheit
+
+Die App bringt **keine Anmeldung** mit – sie ist als Werkzeug im eigenen Netz gedacht. Wer
+die Adresse erreicht, sieht alle Daten. Also entweder nur im Heimnetz betreiben, per VPN
+(WireGuard, Tailscale) erreichbar machen oder hinter einen Reverse Proxy mit
+Authentifizierung hängen. Details in [SECURITY.md](SECURITY.md).
+
 ## Daten und Backup
 
 Alles liegt in einer SQLite-Datei: `./data/haushalt.db`, die Snapshots daneben in
@@ -162,3 +169,11 @@ Das Frontend läuft dann auf Port 5173 und spricht über einen Proxy mit der API
 
 Wenn das Tool wächst und SQLite nicht mehr reicht, genügt eine andere `DATABASE_URL`
 (z. B. Postgres) – das Datenmodell liegt in SQLAlchemy und ist portabel.
+
+Die Startdaten in `api/app/seed.py` sind erfundene Beispielwerte. Beim ersten Start werden
+sie angelegt, damit die Oberfläche nicht leer ist; danach ersetzt man sie einfach durch die
+eigenen Zahlen (oder schaltet sie mit `SEED_ON_START=false` von vornherein ab).
+
+## Lizenz
+
+[MIT](LICENSE) – benutz es, ändere es, mach damit was du willst.

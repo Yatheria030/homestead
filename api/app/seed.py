@@ -1,4 +1,4 @@
-"""Startdaten: die Positionen aus der bisherigen Excel + Beispiel-Vorrat.
+"""Startdaten: ein beispielhafter Haushalt.
 
 Laeuft nur, wenn die Tabellen noch leer sind - vorhandene Daten bleiben unangetastet.
 """
