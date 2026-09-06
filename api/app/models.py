@@ -111,7 +111,12 @@ class Supply(Base):
     unit: Mapped[str | None] = mapped_column(String(24), nullable=True)
 
     # Verbrauch und Bestand
+    # Wie lange eine Packung haelt und wie viele davon pro Einkauf gekauft werden -
+    # daraus ergibt sich der Kaufrhythmus.
     days_per_pack: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    packs_per_purchase: Mapped[float] = mapped_column(
+        Numeric(10, 2, asdecimal=False), default=1
+    )
     stock_packs: Mapped[float] = mapped_column(Numeric(10, 2, asdecimal=False), default=0)
     # Stichtag des Bestands - ab hier rechnet die App den Verbrauch selbst runter
     stock_as_of: Mapped[date | None] = mapped_column(Date, nullable=True)

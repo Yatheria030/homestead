@@ -1,20 +1,68 @@
 # Haushalt
 
-Ablösung für die `hausgeld_dropdown_v7.xlsx`: eine kleine Web-App für den Haushalt,
-die zwei Dinge kann und für mehr offen ist.
+Ein selbstgehostetes Werkzeug für zwei Dinge, die in jedem gemeinsamen Haushalt
+irgendwann unübersichtlich werden: **wer zahlt wofür wie viel** und **was muss wann
+nachgekauft werden**. Ein Docker-Container, eine SQLite-Datei, kein Konto bei irgendwem.
+
+## Warum das Ganze
+
+**Das Gemeinschaftskonto-Problem.** Zwei Leute, ein Haushalt: Miete, Nebenkosten, Strom,
+Versicherungen, Einkauf, Urlaubsrücklage. Irgendwann steht ein Dauerauftrag über 407,92 €
+aufs Gemeinschaftskonto – und drei Monate später weiß niemand mehr, warum ausgerechnet
+diese Zahl. Ist der Strom da drin? Zahlt der andere die Hausratversicherung, oder war das
+die Haftpflicht? Wer hat zuletzt was ausgelegt?
+
+Der Streitpunkt ist dabei selten die Fairness. Es ist die **Nachvollziehbarkeit**. Genau
+die geht in einer gewachsenen Excel als Erstes verloren: Formeln über drei Blätter, und
+eine Zahl ändern heißt hoffen, dass nichts kippt.
+
+Diese App macht die Kette sichtbar, in beide Richtungen:
+
+```
+Position → Gesamtbetrag → wer trägt welchen Anteil → auf welchen Topf geht das Geld
+```
+
+Jeder Pocket lässt sich aufklappen und zeigt, aus welchen Positionen sich sein Betrag
+zusammensetzt. Wird der Strom teurer, änderst du eine Zahl und siehst sofort, welcher
+Dauerauftrag um wie viel angepasst werden muss – nicht am Jahresende beim Nachrechnen.
+Positionen, die bewusst an den gemeinsamen Töpfen vorbeilaufen, bleiben sichtbar, zählen
+aber nicht in die Summe, damit der Gesamtbetrag exakt dem entspricht, was tatsächlich
+überwiesen wird.
+
+**Pockets als Einkommensverteiler.** Wenn die Bank Unterkonten kann (N26 Spaces, Bunq,
+Revolut Vaults, DKB, Trade Republic …), wird daraus ein Automatismus: Für jeden Topf
+einmal einen Dauerauftrag einrichten, und das Gehalt verteilt sich am Monatsanfang von
+selbst – Miete, Strom, KFZ, Urlaub, Gemeinschaftskonto. Was übrig bleibt, ist frei
+verfügbar, ohne Kopfrechnen.
+
+Die App ist dabei der Ort, an dem der **Plan** steht; die Bank führt ihn nur aus. Ändert
+sich etwas, gibt „Plan kopieren“ die aktuelle Soll-Liste je Topf aus – daran passt man die
+Daueraufträge an, fertig. Kein Tabellenblatt, das keiner mehr anfassen will.
+
+**Und der gleiche Gedanke für Dinge statt Geld.** Katzenstreu, Futter, Filter, Zahnpasta:
+Sachen, die man in festem Rhythmus braucht und günstiger wird, wer auf Masse oder im Abo
+kauft. Der Vorrat rechnet aus Haltbarkeit und Kaufmenge den Kaufrhythmus aus, sagt, wann
+der nächste Einkauf ansteht, und bündelt alles Fällige zu einer Einkaufsliste je Anbieter.
+Bei Spar-Abos zeigt er außerdem, ob das Abo den echten Verbrauch überhaupt deckt – und was
+es gegenüber dem Normalpreis spart.
+
+## Was drin ist
 
 **Pockets** – jede Kostenposition hat einen Gesamtbetrag, deinen Anteil (Standard 50 %)
-und ein Ziel-Pocket. Die App rechnet daraus, was pro Monat auf welchen Topf geht –
-inklusive Pockets wie „Direkt untereinander“, die bewusst nicht in die Gesamtsumme zählen.
+und ein Ziel-Pocket. Die App rechnet daraus, was pro Monat auf welchen Topf geht.
+Jahres- und Quartalsbeiträge werden dabei automatisch auf den Monat umgelegt. Pockets
+lassen sich auf „zählt nicht zur Summe“ stellen – für Posten, die direkt zwischen euch
+laufen statt über einen gemeinsamen Topf.
 
-**Vorrat** – Verbrauchsgüter auf Vorrat und im Abo: Katzenstreu, Futter, Filter,
-Zahnpasta, Handseife und so weiter. Pro Artikel steht drin, wie lange eine Packung hält
-und wie viel gerade da ist; den Rest rechnet die App. Der Bestand schreibt sich täglich
-selbst ab, daraus ergeben sich Restreichweite, Nachbestellzeitpunkt und Bestellmenge.
-Listen (Katze, Bad, Küche …) sortieren das Ganze wie in einer Aufgaben-App.
+**Vorrat** – Verbrauchsgüter im Rhythmus statt im Kopf: Katzenstreu, Futter, Filter,
+Zahnpasta, Handseife und so weiter. Zwei Angaben genügen – **wie lange eine Packung hält**
+und **wie viele du pro Einkauf kaufst**. Daraus wird der Kaufrhythmus („2 Packungen alle
+6 Wochen“) und der nächste Kauftermin. Wer auf Masse kauft, stellt einfach die Kaufmenge
+hoch und sieht sofort, wie weit der Rhythmus dadurch auseinanderrückt. Listen (Katze, Bad,
+Küche …) sortieren das Ganze wie in einer Aufgaben-App.
 
-**Einkaufsliste** – alles, was unter seinen Nachbestellpunkt gerutscht ist, gebündelt nach
-Anbieter, mit Menge und Summe. Abhaken bucht den Kauf direkt in den Bestand.
+**Einkaufsliste** – alles, was seinen Kauftermin erreicht hat, gebündelt nach Anbieter,
+mit Menge und Summe. Abhaken bucht den Kauf und startet den Rhythmus neu.
 
 **Abos** sammelt beides an einer Stelle: laufende Kosten aus den Ausgaben plus die
 Vorratsartikel im Abo, hochgerechnet auf Monat und Jahr – inklusive der Frage, ob ein
@@ -86,13 +134,16 @@ Die API ist unter http://localhost:8099/api/docs dokumentiert.
   ausgewiesen.
 ### Vorrat
 
-* **Bestand**: Was zuletzt gezählt oder gekauft wurde, minus dem geschätzten Verbrauch
-  seither. Deshalb muss nichts gepflegt werden, solange sich der Verbrauch nicht ändert.
-* **Reichweite** = Bestand in Packungen × Tage, die eine Packung hält.
-* **Status**: leer (0 Tage) · bestellen (unter dem Puffer) · wird knapp (unter dem
-  doppelten Puffer) · genug da.
-* **Bestellmenge** = so viele Packungen, dass die Zielreichweite wieder erreicht wird –
-  damit lässt sich bewusst auf Masse kaufen (Zielreichweite z. B. 90 Tage).
+* **Kaufrhythmus** = Haltbarkeit einer Packung × Kaufmenge. Ein Sack Katzenstreu hält
+  3 Wochen, du kaufst zwei: alle 6 Wochen.
+* **Nächster Kauftermin** = letzter Einkauf + Rhythmus − Vorlauf. Der Vorlauf sind die
+  Tage, die du vor dem Leerstand kaufen willst (Lieferzeit, Puffer).
+* **Reste zählen mit**: War beim Kauf noch etwas da, verschiebt sich der nächste Termin
+  entsprechend nach hinten. Deshalb bleibt der Plan auch dann richtig, wenn du mal früher
+  oder später einkaufst.
+* **Status**: überfällig · jetzt kaufen (Vorlauf erreicht) · bald dran · im Plan.
+* **Kaufmenge** ist gleichzeitig der Vorschlag auf der Einkaufsliste – so viel, wie du
+  ohnehin kaufst.
 * **Kosten pro Monat** = Packungspreis / Tage pro Packung × 30,44.
 * **Abo-Deckung** = gelieferte Menge pro Tag ÷ verbrauchte Menge pro Tag. 100 % heißt:
   das Abo trifft den Verbrauch genau, darunter kaufst du regelmäßig dazu.

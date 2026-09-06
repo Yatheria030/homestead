@@ -59,46 +59,44 @@ SUPPLY_LISTS = [
     ("Technik", "cyan", "🔌", 50),
 ]
 
-# Startvorrat als Beispiel - Preise und Intervalle bitte an die Realität anpassen.
-# (Name, Liste, Ort, Packung, Einheiten, Einheit, Tage pro Packung, Bestand,
-#  Puffer, Zielreichweite, Abo-Preis, Normalpreis, Abo?, Anbieter, Liefer-Intervall, Menge)
+# Startvorrat als Beispiel - Preise und Rhythmen bitte an die Realität anpassen.
+# (Name, Liste, Ort, Packung, Einheiten, Einheit, Tage pro Packung, Kaufmenge, Bestand,
+#  Vorlauf, Abo-Preis, Normalpreis, Abo?, Anbieter, Liefer-Intervall, Menge je Lieferung)
 SUPPLIES = [
-    ("Katzenstreu", "Katze", "Abstellraum", "2x 10 l", 20, "l", 21, 2.0, 14, 90,
+    ("Katzenstreu", "Katze", "Abstellraum", "2x 10 l", 20, "l", 21, 2, 2.0, 10,
      17.99, 19.99, True, "Amazon Spar-Abo", 30, 1),
-    ("Trockenfutter", "Katze", "Küche", "3 kg", 3, "kg", 30, 1.5, 14, 90,
+    ("Trockenfutter", "Katze", "Küche", "3 kg", 3, "kg", 30, 1, 1.5, 10,
      24.99, 28.99, True, "Amazon Spar-Abo", 30, 1),
-    ("Nassfutter", "Katze", "Vorratsschrank", "24x 85 g", 24, "Dosen", 12, 2.0, 10, 60,
+    ("Nassfutter", "Katze", "Vorratsschrank", "24x 85 g", 24, "Dosen", 12, 3, 2.0, 7,
      18.49, 21.99, True, "Amazon Spar-Abo", 14, 2),
-    ("Petkit Filter", "Katze", "Technikschublade", "4er-Pack", 4, "Stück", 60, 1.0, 21, 120,
+    ("Petkit Filter", "Katze", "Technikschublade", "4er-Pack", 4, "Stück", 60, 1, 1.0, 14,
      14.99, 16.99, True, "Amazon Spar-Abo", 60, 1),
-    ("Wasserbrunnen Filter", "Katze", "Technikschublade", "6er-Pack", 6, "Stück", 90, 0.5, 21, 120,
+    ("Wasserbrunnen Filter", "Katze", "Technikschublade", "6er-Pack", 6, "Stück", 90, 1, 0.5, 14,
      12.99, None, False, "Amazon", None, 1),
-    ("Katzenstreu-Beutel", "Katze", "Abstellraum", "50 Stück", 50, "Stück", 50, 1.0, 14, 90,
+    ("Katzenstreu-Beutel", "Katze", "Abstellraum", "50 Stück", 50, "Stück", 50, 1, 1.0, 14,
      6.99, None, False, "dm", None, 1),
-    ("Zahnpasta", "Bad", "Bad", "2x 75 ml", 150, "ml", 60, 1.0, 14, 90,
+    ("Zahnpasta", "Bad", "Bad", "2x 75 ml", 150, "ml", 60, 1, 1.0, 14,
      5.49, 6.45, True, "Amazon Spar-Abo", 60, 1),
-    ("Handseife Nachfüllung", "Bad", "Bad", "1 l", 1, "l", 90, 1.0, 14, 120,
+    ("Handseife Nachfüllung", "Bad", "Bad", "1 l", 1, "l", 90, 1, 1.0, 14,
      3.95, None, False, "dm", None, 1),
-    ("Duschgel", "Bad", "Bad", "2x 250 ml", 500, "ml", 45, 1.0, 14, 90,
+    ("Duschgel", "Bad", "Bad", "2x 250 ml", 500, "ml", 45, 2, 1.0, 14,
      4.20, None, False, "dm", None, 1),
-    ("Toilettenpapier", "Bad", "Abstellraum", "16 Rollen", 16, "Rollen", 40, 1.0, 14, 90,
+    ("Toilettenpapier", "Bad", "Abstellraum", "16 Rollen", 16, "Rollen", 40, 2, 1.0, 10,
      14.99, 16.99, True, "Amazon Spar-Abo", 45, 1),
-    ("Rasierklingen", "Bad", "Bad", "8 Stück", 8, "Stück", 120, 0.5, 21, 180,
+    ("Rasierklingen", "Bad", "Bad", "8 Stück", 8, "Stück", 120, 1, 0.5, 21,
      24.99, 29.99, True, "Amazon Spar-Abo", 120, 1),
-    ("WC-Steine", "Reinigung", "Bad", "3er-Pack", 3, "Stück", 45, 1.0, 14, 90,
+    ("WC-Steine", "Reinigung", "Bad", "3er-Pack", 3, "Stück", 45, 2, 1.0, 14,
      8.99, 9.99, True, "Amazon Spar-Abo", 45, 1),
-    ("Spülmaschinentabs", "Reinigung", "Küche", "60 Stück", 60, "Stück", 60, 1.0, 14, 120,
+    ("Spülmaschinentabs", "Reinigung", "Küche", "60 Stück", 60, "Stück", 60, 1, 1.0, 14,
      12.99, 15.99, True, "Amazon Spar-Abo", 60, 1),
-    ("Waschmittel", "Reinigung", "Hauswirtschaft", "2,5 l", 2.5, "l", 75, 1.0, 14, 90,
+    ("Waschmittel", "Reinigung", "Hauswirtschaft", "2,5 l", 2.5, "l", 75, 1, 1.0, 14,
      9.95, None, False, "dm", None, 1),
-    ("Spülschwämme", "Reinigung", "Küche", "10 Stück", 10, "Stück", 60, 1.0, 14, 90,
+    ("Spülschwämme", "Reinigung", "Küche", "10 Stück", 10, "Stück", 60, 1, 1.0, 14,
      5.49, None, False, "Amazon", None, 1),
-    ("Küchenrolle", "Küche", "Küche", "8 Rollen", 8, "Rollen", 30, 1.0, 10, 60,
+    ("Küchenrolle", "Küche", "Küche", "8 Rollen", 8, "Rollen", 30, 2, 1.0, 7,
      6.49, None, False, "Rossmann", None, 1),
-    ("Müllbeutel 60 l", "Küche", "Küche", "50 Stück", 50, "Stück", 90, 1.0, 14, 120,
+    ("Müllbeutel 60 l", "Küche", "Küche", "50 Stück", 50, "Stück", 90, 1, 1.0, 14,
      7.99, None, False, "Amazon", None, 1),
-    ("Kaffeebohnen", "Küche", "Küche", "1 kg", 1, "kg", 30, 1.0, 10, 60,
-     18.90, 21.90, True, "Amazon Spar-Abo", 30, 1),
 ]
 
 
@@ -140,8 +138,8 @@ def seed(db: Session) -> bool:
 
     today = date.today()
     for index, row in enumerate(SUPPLIES):
-        (name, list_name, location, pack, units, unit, days, stock, buffer_days,
-         target, price, regular, is_sub, vendor, sub_days, sub_packs) = row
+        (name, list_name, location, pack, units, unit, days, buy, stock, buffer_days,
+         price, regular, is_sub, vendor, sub_days, sub_packs) = row
         db.add(
             Supply(
                 name=name,
@@ -151,11 +149,12 @@ def seed(db: Session) -> bool:
                 units_per_pack=units,
                 unit=unit,
                 days_per_pack=days,
+                packs_per_purchase=buy,
                 stock_packs=stock,
                 # Bestand um ein paar Tage versetzen, damit die Reichweiten variieren
                 stock_as_of=today - timedelta(days=(index * 7) % 25),
                 buffer_days=buffer_days,
-                target_cover_days=target,
+                target_cover_days=days * buy,
                 price=price,
                 regular_price=regular,
                 is_subscription=is_sub,

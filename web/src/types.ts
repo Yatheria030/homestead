@@ -56,6 +56,7 @@ export interface Supply {
   units_per_pack: number | null;
   unit: string | null;
   days_per_pack: number | null;
+  packs_per_purchase: number;
   stock_packs: number;
   stock_as_of: string | null;
   buffer_days: number;
@@ -77,7 +78,9 @@ export interface Supply {
   stock_now: number;
   days_left: number | null;
   runs_out_on: string | null;
-  reorder_on: string | null;
+  buy_on: string | null;
+  purchase_interval_days: number | null;
+  days_until_purchase: number | null;
   status: SupplyStatus;
   suggested_packs: number;
   price_per_unit: number | null;

@@ -22,16 +22,43 @@ export const intervalLabel: Record<string, string> = {
   yearly: "jährlich",
 };
 
-/** "alle 45 Tage" bzw. grobe Monatsangabe, wenn es sich rund rechnet */
+/** Rhythmus in der Einheit, in der man ihn auch denkt: Tage, Wochen, Monate. */
 export function everyLabel(days: number | null | undefined) {
   if (!days) return "–";
-  if (days % 30 === 0 && days >= 30) {
-    const months = days / 30;
-    return months === 1 ? "monatlich" : `alle ${months} Monate`;
+  if (days === 7) return "jede Woche";
+  if (days === 30 || days === 31) return "jeden Monat";
+  if (days < 14) return `alle ${days} Tage`;
+  if (days % 7 === 0 && days < 70) return `alle ${days / 7} Wochen`;
+  if (days % 30 === 0) return `alle ${days / 30} Monate`;
+  if (days >= 60) {
+    const months = Math.round(days / 30.4);
+    return `alle ~${months} Monate`;
   }
-  if (days === 7) return "wöchentlich";
-  if (days === 14) return "alle 2 Wochen";
-  return `alle ${days} Tage`;
+  const weeks = Math.round(days / 7);
+  return `alle ~${weeks} Wochen`;
+}
+
+/** Menge und Rhythmus in einem Satz: "2 Packungen alle 6 Wochen". */
+export function rhythmLabel(packsPerPurchase: number, intervalDays: number | null | undefined) {
+  if (!intervalDays) return "Rhythmus fehlt";
+  const amount =
+    packsPerPurchase === 1
+      ? "1 Packung"
+      : `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 }).format(
+          packsPerPurchase,
+        )} Packungen`;
+  return `${amount} ${everyLabel(intervalDays)}`;
+}
+
+/** Countdown bis zum nächsten Einkauf. */
+export function untilPurchase(days: number | null | undefined) {
+  if (days === null || days === undefined) return "–";
+  if (days < 0) return `seit ${Math.abs(days)} Tagen fällig`;
+  if (days === 0) return "heute kaufen";
+  if (days === 1) return "morgen kaufen";
+  if (days < 14) return `in ${days} Tagen`;
+  if (days < 70) return `in ${Math.round(days / 7)} Wochen`;
+  return `in ${Math.round(days / 30.4)} Monaten`;
 }
 
 export function daysLabel(days: number | null | undefined) {
@@ -80,11 +107,11 @@ export const SUPPLY_STATUS: Record<
   string,
   { label: string; color: string; short: string }
 > = {
-  empty: { label: "leer", color: "rose", short: "leer" },
-  order: { label: "bestellen", color: "orange", short: "bestellen" },
-  soon: { label: "wird knapp", color: "amber", short: "knapp" },
-  ok: { label: "genug da", color: "emerald", short: "ok" },
-  unknown: { label: "kein Verbrauch hinterlegt", color: "slate", short: "offen" },
+  empty: { label: "überfällig", color: "rose", short: "überfällig" },
+  order: { label: "jetzt kaufen", color: "orange", short: "kaufen" },
+  soon: { label: "bald dran", color: "amber", short: "bald" },
+  ok: { label: "im Plan", color: "emerald", short: "ok" },
+  unknown: { label: "noch kein Rhythmus", color: "slate", short: "offen" },
 };
 
 /** "reicht noch 28 Tage" – die Kernaussage jeder Zeile im Vorrat. */

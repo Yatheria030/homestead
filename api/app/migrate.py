@@ -19,6 +19,7 @@ NEW_COLUMNS: dict[str, dict[str, str]] = {
         "stock_as_of": "DATE",
         "buffer_days": "INTEGER DEFAULT 14",
         "target_cover_days": "INTEGER DEFAULT 60",
+        "packs_per_purchase": "NUMERIC DEFAULT 1",
         "regular_price": "NUMERIC",
         "subscription_packs": "NUMERIC DEFAULT 1",
         "next_delivery": "DATE",
@@ -102,6 +103,18 @@ def migrate(engine: Engine) -> list[str]:
                     {"list": existing, "name": name},
                 )
                 done.append(f"Liste '{name}'")
+
+        # Kaufmenge aus der bisherigen Zielreichweite ableiten
+        connection.execute(
+            text(
+                "UPDATE supplies SET packs_per_purchase = "
+                "  MAX(1, CAST(ROUND(CAST(target_cover_days AS REAL) / days_per_pack) AS INTEGER)) "
+                "WHERE packs_per_purchase IS NULL AND days_per_pack > 0"
+            )
+        )
+        connection.execute(
+            text("UPDATE supplies SET packs_per_purchase = 1 WHERE packs_per_purchase IS NULL")
+        )
 
         # Bestand schaetzen: ein Kauf = eine Packung, ab Kaufdatum
         connection.execute(

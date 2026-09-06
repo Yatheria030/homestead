@@ -1,9 +1,73 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, Trash2, X } from "lucide-react";
 import { Button, Chip, Field, inputClass } from "./ui";
-import { SUPPLY_STATUS, coverageLabel, dateLabel, euro, unitPrice } from "../lib/format";
+import {
+  SUPPLY_STATUS,
+  dateLabel,
+  euro,
+  rhythmLabel,
+  unitPrice,
+  untilPurchase,
+} from "../lib/format";
 import { useSupplyActions, useSupplyLists } from "../lib/hooks";
 import type { Supply } from "../types";
+
+/** Dauer in der Einheit eingeben, in der man sie denkt - gespeichert wird in Tagen. */
+function DurationInput({
+  days,
+  onCommit,
+}: {
+  days: number | null;
+  onCommit: (days: number | null) => void;
+}) {
+  const guessUnit = (value: number | null) => {
+    if (!value) return 7;
+    if (value % 30 === 0) return 30;
+    if (value % 7 === 0) return 7;
+    return 1;
+  };
+  const [unit, setUnit] = useState(() => guessUnit(days));
+  const [draft, setDraft] = useState(() => (days ? String(days / guessUnit(days)) : ""));
+
+  useEffect(() => {
+    const next = guessUnit(days);
+    setUnit(next);
+    setDraft(days ? String(days / next) : "");
+  }, [days]);
+
+  const commit = (value: string, factor: number) => {
+    const parsed =
+      value.trim() === "" ? null : Math.round(Number(value.replace(",", ".")) * factor);
+    if (parsed !== days && !Number.isNaN(parsed as number)) onCommit(parsed);
+  };
+
+  return (
+    <div className="flex gap-1.5">
+      <input
+        type="number"
+        step="0.5"
+        min="0"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={(event) => commit(event.target.value, unit)}
+        className={inputClass}
+      />
+      <select
+        value={unit}
+        onChange={(event) => {
+          const factor = Number(event.target.value);
+          setUnit(factor);
+          commit(draft, factor);
+        }}
+        className={`${inputClass} w-28`}
+      >
+        <option value={1}>Tage</option>
+        <option value={7}>Wochen</option>
+        <option value={30}>Monate</option>
+      </select>
+    </div>
+  );
+}
 
 /** Detailansicht eines Artikels - alles, was nicht in die Zeile passt. */
 export function SupplyDrawer({
@@ -46,7 +110,9 @@ export function SupplyDrawer({
             />
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <Chip label={status.label} color={status.color} />
-              <span className="text-[12px] text-muted">{coverageLabel(supply.days_left)}</span>
+              <span className="text-[12px] text-muted">
+                {untilPurchase(supply.days_until_purchase)}
+              </span>
             </div>
           </div>
           <button
@@ -88,20 +154,51 @@ export function SupplyDrawer({
 
           <section>
             <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-faint">
-              Verbrauch
+              Kaufrhythmus
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Eine Packung hält" hint="Tage">
+              <Field label="Eine Packung hält">
+                <DurationInput
+                  days={supply.days_per_pack}
+                  onCommit={(days) => set({ days_per_pack: days })}
+                />
+              </Field>
+              <Field label="Kaufmenge" hint="Packungen je Einkauf">
                 <input
                   type="number"
-                  defaultValue={supply.days_per_pack ?? ""}
+                  step="1"
+                  min="1"
+                  defaultValue={supply.packs_per_purchase}
                   onBlur={(event) =>
-                    set({ days_per_pack: event.target.value ? Number(event.target.value) : null })
+                    set({ packs_per_purchase: Number(event.target.value || 1) })
                   }
                   className={inputClass}
                 />
               </Field>
-              <Field label="Bestand" hint="Packungen – wird täglich abgeschrieben">
+            </div>
+
+            <div className="mt-3 rounded-lg border border-line bg-raised px-3 py-2.5">
+              <div className="text-[13px] font-medium">
+                {rhythmLabel(supply.packs_per_purchase, supply.purchase_interval_days)}
+              </div>
+              <div className="mt-0.5 text-[12px] text-muted">
+                Nächster Einkauf: {dateLabel(supply.buy_on)} ·{" "}
+                {untilPurchase(supply.days_until_purchase)}
+                {supply.runs_out_on && ` · leer am ${dateLabel(supply.runs_out_on)}`}
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <Field label="Vorlauf" hint="so viele Tage vor dem Leerstand kaufen">
+                <input
+                  type="number"
+                  min="0"
+                  defaultValue={supply.buffer_days}
+                  onBlur={(event) => set({ buffer_days: Number(event.target.value || 0) })}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Rest zuhause" hint="nur falls du nachgezählt hast">
                 <div className="flex gap-1.5">
                   <input
                     type="number"
@@ -118,27 +215,10 @@ export function SupplyDrawer({
                   </Button>
                 </div>
               </Field>
-              <Field label="Nachbestellen ab" hint="Tage Restreichweite">
-                <input
-                  type="number"
-                  defaultValue={supply.buffer_days}
-                  onBlur={(event) => set({ buffer_days: Number(event.target.value || 0) })}
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Vorrat anlegen für" hint="Tage – steuert die Bestellmenge">
-                <input
-                  type="number"
-                  defaultValue={supply.target_cover_days}
-                  onBlur={(event) => set({ target_cover_days: Number(event.target.value || 0) })}
-                  className={inputClass}
-                />
-              </Field>
             </div>
-            <p className="mt-2 text-[12px] text-muted">
-              Leer am {dateLabel(supply.runs_out_on)} · bestellen ab{" "}
-              {dateLabel(supply.reorder_on)}
-              {supply.suggested_packs > 0 && ` · Vorschlag: ${supply.suggested_packs} Packungen`}
+            <p className="mt-2 text-[12px] text-faint">
+              Zuletzt gekauft: {dateLabel(supply.last_purchased)}. Beim Kauf zählt die App
+              Reste mit – wenn noch etwas da war, verschiebt sich der nächste Termin.
             </p>
           </section>
 
@@ -330,9 +410,9 @@ export function SupplyDrawer({
           </Button>
           <Button
             variant="primary"
-            onClick={() => actions.restock(supply.id, Math.max(1, supply.suggested_packs))}
+            onClick={() => actions.restock(supply.id, supply.suggested_packs)}
           >
-            {Math.max(1, supply.suggested_packs)} Packungen gekauft
+            <Check size={14} /> {supply.suggested_packs}× gekauft
           </Button>
         </div>
       </aside>

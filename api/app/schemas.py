@@ -162,6 +162,7 @@ class SupplyIn(BaseModel):
     units_per_pack: float | None = None
     unit: str | None = None
     days_per_pack: int | None = None
+    packs_per_purchase: float = 1
     stock_packs: float = 0
     stock_as_of: date | None = None
     buffer_days: int = 14
@@ -188,6 +189,7 @@ class SupplyPatch(BaseModel):
     units_per_pack: float | None = None
     unit: str | None = None
     days_per_pack: int | None = None
+    packs_per_purchase: float | None = None
     stock_packs: float | None = None
     stock_as_of: date | None = None
     buffer_days: int | None = None
@@ -218,6 +220,7 @@ class SupplyOut(ORMModel):
     units_per_pack: float | None
     unit: str | None
     days_per_pack: int | None
+    packs_per_purchase: float
     stock_packs: float
     stock_as_of: date | None
     buffer_days: int
@@ -261,6 +264,22 @@ class SupplyOut(ORMModel):
 
     @computed_field
     @property
+    def purchase_interval_days(self) -> int | None:
+        """Kaufrhythmus: Haltbarkeit einer Packung mal Kaufmenge."""
+        if not self.days_per_pack:
+            return None
+        return max(1, round(self.days_per_pack * (self.packs_per_purchase or 1)))
+
+    @computed_field
+    @property
+    def days_until_purchase(self) -> int | None:
+        """Tage bis zum nächsten Einkauf - der Vorlauf ist schon abgezogen."""
+        if self.days_left is None:
+            return None
+        return self.days_left - self.buffer_days
+
+    @computed_field
+    @property
     def runs_out_on(self) -> date | None:
         from datetime import timedelta
 
@@ -269,8 +288,8 @@ class SupplyOut(ORMModel):
 
     @computed_field
     @property
-    def reorder_on(self) -> date | None:
-        """Ab wann bestellt werden sollte, damit der Puffer nicht angebrochen wird."""
+    def buy_on(self) -> date | None:
+        """Tag, an dem gekauft werden sollte - Vorlauf vor dem Leerstand."""
         from datetime import timedelta
 
         out = self.runs_out_on
@@ -293,15 +312,10 @@ class SupplyOut(ORMModel):
     @computed_field
     @property
     def suggested_packs(self) -> int:
-        """Packungen, die es braucht, um die Zielreichweite wieder zu erreichen."""
+        """Die übliche Kaufmenge - so viel, wie du sonst auch kaufst."""
         import math
 
-        if not self.days_per_pack:
-            return 0
-        missing_days = self.target_cover_days - (self.days_left or 0)
-        if missing_days <= 0:
-            return 0
-        return max(1, math.ceil(missing_days / self.days_per_pack))
+        return max(1, math.ceil(self.packs_per_purchase or 1))
 
     @computed_field
     @property

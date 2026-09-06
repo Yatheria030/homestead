@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, Copy, ExternalLink, ShoppingCart, Store } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { Card, Chip, EmptyState, StatCard } from "../components/ui";
-import { SUPPLY_STATUS, colorOf, coverageLabel, euro } from "../lib/format";
+import { SUPPLY_STATUS, colorOf, euro, untilPurchase } from "../lib/format";
 import { useShoppingList, useSupplyActions } from "../lib/hooks";
 
 export function ShoppingList({ onMenu }: { onMenu: () => void }) {
@@ -45,7 +45,7 @@ export function ShoppingList({ onMenu }: { onMenu: () => void }) {
     <>
       <PageHeader
         title="Einkaufsliste"
-        subtitle="Was jetzt nachbestellt werden sollte – nach Anbieter gebündelt"
+        subtitle="Was jetzt dran ist – nach Anbieter gebündelt"
         onMenu={onMenu}
         actions={
           <button
@@ -62,7 +62,7 @@ export function ShoppingList({ onMenu }: { onMenu: () => void }) {
       <div className="space-y-4 p-4">
         <div className="grid gap-3 sm:grid-cols-3">
           <StatCard
-            label="Zu bestellen"
+            label="Einzukaufen"
             value={itemCount}
             hint={itemCount === 1 ? "Artikel" : "Artikel"}
             icon={<ShoppingCart size={17} />}
@@ -87,8 +87,8 @@ export function ShoppingList({ onMenu }: { onMenu: () => void }) {
         {!isLoading && groups.length === 0 && (
           <Card>
             <EmptyState
-              title="Nichts zu bestellen"
-              hint="Alle Artikel liegen über ihrem Nachbestellpunkt."
+              title="Nichts einzukaufen"
+              hint="Kein Artikel hat seinen Kauftermin erreicht."
             />
           </Card>
         )}
@@ -162,7 +162,7 @@ export function ShoppingList({ onMenu }: { onMenu: () => void }) {
                           className="text-[12px] font-medium"
                           style={{ color: colorOf(SUPPLY_STATUS[item.status].color) }}
                         >
-                          {coverageLabel(item.days_left)}
+                          {untilPurchase(item.days_left)}
                         </div>
                         <div className="text-[12px] tabular-nums text-faint">
                           {euro(item.total)}
@@ -180,8 +180,8 @@ export function ShoppingList({ onMenu }: { onMenu: () => void }) {
 
         {itemCount > 0 && (
           <p className="text-[12px] text-faint">
-            Die Mengen ergeben sich aus der Zielreichweite je Artikel. Abhaken bucht den Kauf
-            direkt in den Bestand – der Artikel verschwindet dann aus der Liste.
+            Die Mengen sind die üblichen Kaufmengen je Artikel. Abhaken bucht den Kauf und
+            startet den Rhythmus neu – der Artikel verschwindet dann aus der Liste.
           </p>
         )}
       </div>

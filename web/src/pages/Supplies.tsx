@@ -16,10 +16,11 @@ import { Card, EmptyState } from "../components/ui";
 import {
   SUPPLY_STATUS,
   colorOf,
-  coverageLabel,
+  dateLabel,
   euro,
-  packs as packLabel,
+  rhythmLabel,
   unitPrice,
+  untilPurchase,
 } from "../lib/format";
 import {
   useSupplies,
@@ -31,24 +32,25 @@ import type { Supply } from "../types";
 
 type Smart = "all" | "order" | "soon" | "subscription";
 
-/** Balken: wie weit reicht der Vorrat gemessen an der Zielreichweite? */
-function CoverageBar({ supply }: { supply: Supply }) {
+/** Balken: wo im Kaufzyklus stehen wir gerade? */
+function CycleBar({ supply }: { supply: Supply }) {
   const status = SUPPLY_STATUS[supply.status];
-  const target = Math.max(supply.target_cover_days, 1);
-  const filled = Math.min(100, Math.max(0, ((supply.days_left ?? 0) / target) * 100));
-  const bufferAt = Math.min(100, (supply.buffer_days / target) * 100);
+  const cycle = Math.max(supply.purchase_interval_days ?? 0, 1);
+  const left = Math.max(0, supply.days_left ?? 0);
+  const used = Math.min(100, Math.max(0, ((cycle - left) / cycle) * 100));
+  const buyAt = Math.min(100, ((cycle - supply.buffer_days) / cycle) * 100);
 
   return (
     <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-line-soft">
       <div
         className="h-full rounded-full transition-all"
-        style={{ width: `${filled}%`, background: colorOf(status.color) }}
+        style={{ width: `${used}%`, background: colorOf(status.color) }}
       />
-      {/* Markierung: ab hier sollte bestellt werden */}
+      {/* Markierung: ab hier kaufen, damit der Vorlauf reicht */}
       <div
         className="absolute inset-y-0 w-px bg-[var(--faint)] opacity-70"
-        style={{ left: `${bufferAt}%` }}
-        title={`Nachbestellen ab ${supply.buffer_days} Tagen Rest`}
+        style={{ left: `${buyAt}%` }}
+        title={`Kaufen, wenn noch ${supply.buffer_days} Tage übrig sind`}
       />
     </div>
   );
@@ -131,31 +133,30 @@ function SupplyRow({
 
       <div className="col-span-2 min-w-0 md:col-span-1">
         <div className="mb-1 flex items-baseline justify-between gap-2 text-[12px]">
-          <span className="truncate font-medium" style={{ color: colorOf(status.color) }}>
-            {coverageLabel(supply.days_left)}
+          <span className="truncate font-medium">
+            {rhythmLabel(supply.packs_per_purchase, supply.purchase_interval_days)}
           </span>
-          <span className="shrink-0 tabular-nums text-faint">
-            {packLabel(supply.stock_now)}
+          <span
+            className="shrink-0 font-medium tabular-nums"
+            style={{ color: colorOf(status.color) }}
+            title={supply.buy_on ? `Kaufen am ${dateLabel(supply.buy_on)}` : undefined}
+          >
+            {untilPurchase(supply.days_until_purchase)}
           </span>
         </div>
-        <CoverageBar supply={supply} />
+        <CycleBar supply={supply} />
       </div>
 
       <div
         className="flex shrink-0 items-center gap-1 justify-self-end"
         onClick={(event) => event.stopPropagation()}
       >
-        {supply.suggested_packs > 0 && (
-          <span className="hidden rounded-md bg-line-soft px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-muted sm:block">
-            {supply.suggested_packs}×
-          </span>
-        )}
         <button
           onClick={onRestock}
-          title={`${Math.max(1, supply.suggested_packs)} Packungen als gekauft buchen`}
+          title={`${supply.suggested_packs}× ${supply.pack_size ?? "Packung"} als gekauft buchen – der Rhythmus startet neu`}
           className="inline-flex h-7 items-center gap-1 rounded-md border border-line px-2 text-[12px] font-medium text-muted transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
         >
-          <Check size={13} /> Gekauft
+          <Check size={13} /> {supply.suggested_packs}× gekauft
         </button>
         <ChevronRight size={15} className="text-faint" />
       </div>
@@ -206,7 +207,8 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
       )
       .sort(
         (a, b) =>
-          order[a.status] - order[b.status] || (a.days_left ?? 9999) - (b.days_left ?? 9999),
+          order[a.status] - order[b.status] ||
+          (a.days_until_purchase ?? 9999) - (b.days_until_purchase ?? 9999),
       );
   }, [supplies, search, smart, listId]);
 
@@ -220,17 +222,17 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
       name,
       list_id: listId ?? lists[0]?.id ?? null,
       days_per_pack: 30,
+      packs_per_purchase: 1,
       stock_packs: 1,
-      buffer_days: 14,
-      target_cover_days: 60,
+      buffer_days: 7,
     });
     setDraft("");
   };
 
   const smartItems: { key: Smart; label: string; icon: typeof Inbox; color: string }[] = [
     { key: "all", label: "Alles", icon: Inbox, color: "slate" },
-    { key: "order", label: "Jetzt bestellen", icon: ShoppingCart, color: "orange" },
-    { key: "soon", label: "Wird knapp", icon: Timer, color: "amber" },
+    { key: "order", label: "Jetzt kaufen", icon: ShoppingCart, color: "orange" },
+    { key: "soon", label: "Bald dran", icon: Timer, color: "amber" },
     { key: "subscription", label: "Im Abo", icon: RefreshCw, color: "teal" },
   ];
 
@@ -238,7 +240,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
     <>
       <PageHeader
         title="Vorrat"
-        subtitle={`${counts.all} Artikel · ${counts.order} nachbestellen · ${euro(monthly)} pro Monat`}
+        subtitle={`${counts.all} Artikel · ${counts.order} jetzt kaufen · ${euro(monthly)} pro Monat`}
         onMenu={onMenu}
         search={search}
         onSearch={setSearch}
@@ -377,8 +379,8 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
 
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-faint">
             <Package size={13} />
-            Der Bestand rechnet sich täglich selbst herunter. „Gekauft" bucht die
-            vorgeschlagene Menge dazu, im Detail lässt er sich jederzeit korrigieren.
+            Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge. „Gekauft" startet ihn
+            neu – Reste aus dem letzten Einkauf werden dabei mitgerechnet.
           </div>
         </div>
       </div>

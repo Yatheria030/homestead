@@ -3,7 +3,7 @@ import { Cell, Pie, PieChart, Tooltip } from "recharts";
 import { ArrowRight, Check, Package, RefreshCw, Users, Wallet } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { Card, Chip, EmptyState, StatCard } from "../components/ui";
-import { SUPPLY_STATUS, colorOf, coverageLabel, euro } from "../lib/format";
+import { SUPPLY_STATUS, colorOf, euro, everyLabel, untilPurchase } from "../lib/format";
 import { useSummary, useSupplies, useSupplyActions } from "../lib/hooks";
 
 export function Dashboard({ onMenu }: { onMenu: () => void }) {
@@ -60,8 +60,8 @@ export function Dashboard({ onMenu }: { onMenu: () => void }) {
           />
           <StatCard
             label="Vorrat"
-            value={summary?.supplies_order ? `${summary.supplies_order} bestellen` : "alles da"}
-            hint={`${summary?.supplies_soon ?? 0} werden knapp · ${euro(
+            value={summary?.supplies_order ? `${summary.supplies_order} einkaufen` : "alles im Plan"}
+            hint={`${summary?.supplies_soon ?? 0} bald dran · ${euro(
               summary?.supplies_monthly ?? 0,
             )} pro Monat`}
             icon={<Package size={17} />}
@@ -189,8 +189,8 @@ export function Dashboard({ onMenu }: { onMenu: () => void }) {
         <Card padded={false}>
           <div className="flex items-center justify-between px-4 py-3">
             <div>
-              <h2 className="text-[14px] font-semibold">Geht zur Neige</h2>
-              <p className="text-[12px] text-muted">Nach Restreichweite sortiert</p>
+              <h2 className="text-[14px] font-semibold">Als Nächstes einkaufen</h2>
+              <p className="text-[12px] text-muted">Nach Kauftermin sortiert</p>
             </div>
             <Link
               to="/einkaufsliste"
@@ -201,7 +201,7 @@ export function Dashboard({ onMenu }: { onMenu: () => void }) {
           </div>
           <div className="border-t border-line">
             {upcoming.length === 0 && (
-              <EmptyState title="Alles versorgt" hint="Kein Artikel wird in nächster Zeit knapp." />
+              <EmptyState title="Nichts fällig" hint="Kein Einkauf steht in nächster Zeit an." />
             )}
             {upcoming.map((supply) => (
               <div
@@ -215,19 +215,20 @@ export function Dashboard({ onMenu }: { onMenu: () => void }) {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[13px] font-medium">{supply.name}</div>
                   <div className="truncate text-[12px] text-muted">
-                    {supply.supply_list?.name ?? "Ohne Liste"}
+                    {supply.supply_list?.name ?? "Ohne Liste"} ·{" "}
+                    {everyLabel(supply.purchase_interval_days)}
                     {supply.vendor ? ` · ${supply.vendor}` : ""}
                   </div>
                 </div>
                 {supply.is_subscription && <Chip label="Abo" color="teal" dot={false} />}
                 <span className="hidden w-40 shrink-0 text-right text-[12px] text-muted sm:block">
-                  {coverageLabel(supply.days_left)}
+                  {untilPurchase(supply.days_until_purchase)}
                 </span>
                 <button
-                  onClick={() => restock(supply.id, Math.max(1, supply.suggested_packs))}
+                  onClick={() => restock(supply.id, supply.suggested_packs)}
                   className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md border border-line px-2 text-[12px] font-medium text-muted transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
                 >
-                  <Check size={13} /> {Math.max(1, supply.suggested_packs)}× gekauft
+                  <Check size={13} /> {supply.suggested_packs}× gekauft
                 </button>
               </div>
             ))}
