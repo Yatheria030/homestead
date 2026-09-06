@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const KEY = "haushalt-theme";
+const KEY = "homestead-theme";
 type Theme = "light" | "dark";
 
 function initial(): Theme {

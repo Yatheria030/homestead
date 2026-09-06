@@ -2,7 +2,7 @@
 
 SQLAlchemys create_all legt nur fehlende Tabellen an, keine neuen Spalten.
 Hier werden fehlende Spalten ergaenzt und Altdaten uebernommen - so bleibt eine
-bereits gepflegte haushalt.db erhalten.
+bereits gepflegte homestead.db erhalten.
 """
 from __future__ import annotations
 

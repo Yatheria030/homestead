@@ -208,7 +208,7 @@ export function SettingsPage({ onMenu }: { onMenu: () => void }) {
             <div className="min-w-0">
               <h2 className="text-[14px] font-semibold">Wo die Daten liegen</h2>
               <p className="mt-1 text-[13px] text-muted">
-                Alles steckt in einer SQLite-Datei unter <code>./data/haushalt.db</code> neben
+                Alles steckt in einer SQLite-Datei unter <code>./data/homestead.db</code> neben
                 der docker-compose.yml, die Snapshots daneben in <code>./data/backups/</code>.
               </p>
               <p className="mt-2 text-[13px] text-muted">

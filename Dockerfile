@@ -12,7 +12,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     STATIC_DIR=/srv/static \
-    DATABASE_URL=sqlite:////data/haushalt.db
+    DATABASE_URL=sqlite:////data/homestead.db
 
 WORKDIR /srv
 

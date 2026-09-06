@@ -56,7 +56,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             H
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[14px] font-semibold leading-tight">Haushalt</div>
+            <div className="truncate text-[14px] font-semibold leading-tight">Homestead</div>
             <div className="truncate text-[11px] text-faint">Pockets &amp; Vorrat</div>
           </div>
           <button

@@ -1,11 +1,11 @@
 services:
-  haushalt:
+  homestead:
     build: .
-    container_name: haushalt
+    container_name: homestead
     restart: unless-stopped
     environment:
       # SQLite-Datei im Volume - Backup = diese Datei kopieren
-      DATABASE_URL: sqlite:////data/haushalt.db
+      DATABASE_URL: sqlite:////data/homestead.db
       SEED_ON_START: ${SEED_ON_START:-true}
       # Snapshots: alle X Stunden automatisch, die letzten N automatischen bleiben
       BACKUP_DIR: /data/backups

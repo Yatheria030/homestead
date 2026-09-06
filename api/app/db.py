@@ -3,7 +3,7 @@ import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./haushalt.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./homestead.db")
 
 # check_same_thread nur fuer SQLite noetig; so bleibt Postgres spaeter moeglich
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
