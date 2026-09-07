@@ -3,6 +3,16 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.5] – 2026-09-07
+
+### Added
+
+* Which list each article belongs to is back in the table — as a small colored chip in
+  its own column, so "that's the cat stuff" is visible without opening anything.
+  Clicking the **Liste** header sorts the rows by list (A → Z, then Z → A, then off),
+  with status and due date as the tie-breaker inside a list. The card view shows the
+  same chip next to the name.
+
 ## [0.7.4] – 2026-09-07
 
 ### Fixed
@@ -195,6 +205,7 @@ treatment.
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.5]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.5
 [0.7.4]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.4
 [0.7.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.3
 [0.7.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.2

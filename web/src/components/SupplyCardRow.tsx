@@ -117,8 +117,19 @@ export function SupplyCardRow({
                 {supply.name}
               </span>
             )}
-            {supply.is_subscription && <RefreshCw size={12} className="shrink-0 text-teal-500" />}
-          </div>
+              {supply.is_subscription && <RefreshCw size={12} className="shrink-0 text-teal-500" />}
+              {supply.supply_list && (
+                <span
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium"
+                  style={{
+                    color: colorOf(supply.supply_list.color),
+                    background: `color-mix(in srgb, ${colorOf(supply.supply_list.color)} 14%, transparent)`,
+                  }}
+                >
+                  {supply.supply_list.icon ?? "•"} {supply.supply_list.name}
+                </span>
+              )}
+            </div>
           <div className="flex items-center gap-1.5 truncate text-[12px] text-muted">
             <span className="truncate">{priceLine || "Preis und Menge fehlen"}</span>
             {supply.vendor && (

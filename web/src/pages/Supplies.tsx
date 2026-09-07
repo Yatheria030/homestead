@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   ChevronRight,
   ExternalLink,
   History,
@@ -42,7 +44,7 @@ import type { Supply } from "../types";
 type Smart = "all" | "order" | "soon" | "subscription";
 type View = "grid" | "cards";
 
-const COLUMNS = 9;
+const COLUMNS = 10;
 const VIEW_KEY = "homestead-vorrat-view";
 
 /** Gewählte Ansicht merken - die Entscheidung ist Geschmackssache, nicht pro Besuch neu. */
@@ -124,6 +126,8 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
   const [openId, setOpenId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [newList, setNewList] = useState(false);
+  // Kopf „Liste" klicken: aufsteigend → absteigend → aus
+  const [listSort, setListSort] = useState<null | "asc" | "desc">(null);
   const [view, setView] = useViewPreference();
 
   const { data: supplies = [], isLoading } = useSupplies();
@@ -161,12 +165,19 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               .filter(Boolean)
               .some((value) => value!.toLowerCase().includes(needle)),
       )
-      .sort(
-        (a, b) =>
+      .sort((a, b) => {
+        if (listSort) {
+          const nameA = a.supply_list?.name ?? "\u0000";
+          const nameB = b.supply_list?.name ?? "\u0000";
+          const cmp = nameA.localeCompare(nameB, "de");
+          if (cmp !== 0) return listSort === "asc" ? cmp : -cmp;
+        }
+        return (
           order[a.status] - order[b.status] ||
-          (a.days_until_purchase ?? 9999) - (b.days_until_purchase ?? 9999),
-      );
-  }, [supplies, search, smart, listId]);
+          (a.days_until_purchase ?? 9999) - (b.days_until_purchase ?? 9999)
+        );
+      });
+    }, [supplies, search, smart, listId, listSort]);
 
   const monthly = rows.reduce((sum, supply) => sum + (supply.monthly_cost ?? 0), 0);
 
@@ -204,6 +215,22 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
         </Td>
         <Td className="font-medium">
           <TextCell value={supply.name} onCommit={(name) => actions.update(supply.id, { name })} />
+        </Td>
+        <Td>
+          {supply.supply_list ? (
+            <span
+              className="inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[12px] font-medium"
+              style={{
+                color: colorOf(supply.supply_list.color),
+                background: `color-mix(in srgb, ${colorOf(supply.supply_list.color)} 12%, transparent)`,
+              }}
+            >
+              <span className="shrink-0">{supply.supply_list.icon ?? "•"}</span>
+              <span className="truncate">{supply.supply_list.name}</span>
+            </span>
+          ) : (
+            <span className="text-faint">–</span>
+          )}
         </Td>
         <Td>
           <NumberCell
@@ -481,6 +508,23 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                     <span title="Status">•</span>
                   </Th>
                   <Th width={150}>Artikel</Th>
+                  <Th width={92}>
+                    <button
+                      onClick={() =>
+                        setListSort(listSort ? null : listSort === "asc" ? "desc" : "asc")
+                      }
+                      title="Nach Liste sortieren"
+                      className={`inline-flex items-center gap-1 ${
+                        listSort
+                          ? "normal-case tracking-normal text-brand"
+                          : "uppercase tracking-wider"
+                      }`}
+                    >
+                      Liste
+                      {listSort === "asc" && <ArrowUp size={11} />}
+                      {listSort === "desc" && <ArrowDown size={11} />}
+                    </button>
+                  </Th>
                   <Th width={70} align="right">
                     Bestand
                   </Th>
@@ -521,7 +565,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               {rows.length > 0 && (
                 <tfoot>
                   <tr className="bg-raised">
-                    <td colSpan={5} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
+                    <td colSpan={6} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
                       Vorrat gesamt · pro Monat
                     </td>
                     <td colSpan={4} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
