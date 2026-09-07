@@ -3,6 +3,16 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.3] – 2026-09-07
+
+### Fixed
+
+* A purchase logged via the quick "bought it" button (row list, dashboard, or the
+  drawer's own button) could be missing from the purchase history if you'd viewed
+  that item's history in the last few seconds — the mutation updated stock and
+  history on the server correctly, but never told the cached history view it was
+  stale. It does now.
+
 ## [0.6.2] – 2026-09-07
 
 ### Changed
@@ -123,6 +133,7 @@ follows [Semantic Versioning](https://semver.org/).
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.6.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.3
 [0.6.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.2
 [0.6.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.1
 [0.6.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.0

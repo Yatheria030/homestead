@@ -64,7 +64,9 @@ export function useSupplyActions() {
   const restock = useInvalidating(
     (id: number, body?: { packs?: number; price?: number; purchased_on?: string }) =>
       api.restock(id, body),
-    ["supplies", "shopping-list"],
+    // "purchases" ist ein Praefix-Match auf ["purchases", <id>] - jeder Kauf landet
+    // in der Historie, die den Drawer speist, also muss die mit veralten.
+    ["supplies", "shopping-list", "purchases"],
   );
   const setStock = useInvalidating(
     (id: number, packs: number) => api.setStock(id, packs),
