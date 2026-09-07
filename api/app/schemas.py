@@ -149,6 +149,13 @@ class SupplyListIn(BaseModel):
     sort_order: int = 0
 
 
+class SupplyListPatch(BaseModel):
+    name: str | None = None
+    color: str | None = None
+    icon: str | None = None
+    sort_order: int | None = None
+
+
 class SupplyListOut(ORMModel):
     id: int
     name: str

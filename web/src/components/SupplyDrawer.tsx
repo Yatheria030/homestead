@@ -11,7 +11,7 @@ import {
   unitPrice,
   untilPurchase,
 } from "../lib/format";
-import { useSupplyActions, useSupplyLists } from "../lib/hooks";
+import { useSupplyActions, useSupplyLists, useSupplyListActions } from "../lib/hooks";
 import type { Supply } from "../types";
 
 /** Dauer in der Einheit eingeben, in der man sie denkt - gespeichert wird in Tagen. */
@@ -81,6 +81,7 @@ export function SupplyDrawer({
 }) {
   const { data: lists = [] } = useSupplyLists();
   const actions = useSupplyActions();
+  const listActions = useSupplyListActions();
   const [stockDraft, setStockDraft] = useState("");
 
   useEffect(() => {
@@ -126,7 +127,7 @@ export function SupplyDrawer({
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4">
-          <section className="grid grid-cols-2 gap-3">
+          <section className="grid grid-cols-[minmax(0,1fr)_52px] gap-3">
             <Field label="Liste">
               <select
                 value={supply.list_id ?? ""}
@@ -143,6 +144,21 @@ export function SupplyDrawer({
                   </option>
                 ))}
               </select>
+            </Field>
+            <Field label="Emoji" hint="Für die Liste">
+              <input
+                key={supply.list_id ?? "none"}
+                defaultValue={
+                  lists.find((list) => list.id === supply.list_id)?.icon ?? ""
+                }
+                title="Emoji der Liste"
+                maxLength={4}
+                onBlur={(event) => {
+                  const list = lists.find((l) => l.id === supply.list_id);
+                  if (list) listActions.update(list.id, { icon: event.target.value.trim() || null });
+                }}
+                className={inputClass}
+              />
             </Field>
             <Field label="Ort">
               <input

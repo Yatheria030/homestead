@@ -28,6 +28,7 @@ from ..schemas import (
     SupplyIn,
     SupplyListIn,
     SupplyListOut,
+    SupplyListPatch,
     SupplyOut,
     SupplyPatch,
     money,
@@ -93,7 +94,7 @@ def create_list(payload: SupplyListIn, db: Session = Depends(get_db)):
 
 
 @router.patch("/supply-lists/{list_id}", response_model=SupplyListOut)
-def update_list(list_id: int, payload: SupplyListIn, db: Session = Depends(get_db)):
+def update_list(list_id: int, payload: SupplyListPatch, db: Session = Depends(get_db)):
     obj = get_or_404(db, SupplyList, list_id)
     apply_patch(obj, payload.model_dump(exclude_unset=True))
     db.commit()
