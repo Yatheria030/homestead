@@ -30,7 +30,7 @@ jobs:
           # Abschluss darf dabei nur an Spalte 0 stehen und zerrt dann gegen
           # die Blockskala
           VERSION="${TAG#v}"
-          SECTION="$(python3 - "$VERSION" <<'PYEOF'
+          PAIR="$(python3 - "$VERSION" <<'PYEOF'
           import re, sys
           text = open("CHANGELOG.md", encoding="utf-8").read()
           m = re.search(
@@ -38,15 +38,28 @@ jobs:
               text,
               re.S,
           )
-          print(m.group(2).strip() if m else "Kein Changelog-Eintrag vorhanden.", end="")
+          if not m:
+              print(sys.argv[1]); print("Kein Changelog-Eintrag vorhanden."); sys.exit()
+          body = m.group(2).strip()
+          # Optionale Tagline als Release-Titel, z. B. "> tagline: Spalten ziehen"
+          t = re.search(r"^> tagline:\s*(.+)\s*$", body, re.M)
+          if t:
+              title = " – ".join([sys.argv[1], t.group(1).strip()])
+              body = re.sub(r"^> tagline:.*\s*", "", body, count=1).strip()
+          else:
+              title = sys.argv[1]
+          print(title)
+          print(body)
           PYEOF
           )"
+          TITLE="${PAIR%%$'\n'*}"
+          SECTION="${PAIR#*$'\n'}"
           # Ueberschreiben erlaubt: schon vorhanden und neu getaggt ist kein
           # Fehlerfall, sondern eine Korrektur
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "$VERSION" --notes "$SECTION" || true
+            gh release edit "$TAG" --title "$TITLE" --notes "$SECTION" || true
           else
-            gh release create "$TAG" --title "$VERSION" --notes "$SECTION" --latest
+            gh release create "$TAG" --title "$TITLE" --notes "$SECTION" --latest
           fi
 
   image:

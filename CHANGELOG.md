@@ -3,7 +3,12 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+Optional: a `> tagline: ...` line right under the version heading becomes the GitHub
+release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
+scheme. Without one, the release is titled with the bare version number.
+
 ## [0.7.8] – 2026-09-07
+> tagline: Separators scoped to the supplies table
 
 ### Fixed
 
@@ -13,6 +18,7 @@ follows [Semantic Versioning](https://semver.org/).
   back to how they were.
 
 ## [0.7.7] – 2026-09-07
+> tagline: Column separators
 
 ### Added
 
@@ -26,6 +32,7 @@ follows [Semantic Versioning](https://semver.org/).
   only signalled by the color and the arrow.
 
 ## [0.7.6] – 2026-09-07
+> tagline: Column resizing
 
 ### Added
 
@@ -35,6 +42,7 @@ follows [Semantic Versioning](https://semver.org/).
   any column you never touched keeps its default size.
 
 ## [0.7.5] – 2026-09-07
+> tagline: List column, sortable
 
 ### Added
 
