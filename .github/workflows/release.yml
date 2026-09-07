@@ -4,6 +4,15 @@ on:
   push:
     tags: ["v*"]
 
+# Zwei gleichzeitig laufende Image-Builds schreiben in denselben
+# Actions-Cache (cache-to: type=gha) und blockieren sich gegenseitig - bei
+# zwei Tags kurz nacheinander blieb ein Lauf endlos im Build-Schritt hängen.
+# Also der Reihe nach statt parallel; abbrechen wäre falsch, jeder Tag soll
+# sein Image bekommen.
+concurrency:
+  group: release-image
+  cancel-in-progress: false
+
 jobs:
   image:
     name: Container image veröffentlichen
