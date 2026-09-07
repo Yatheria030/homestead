@@ -270,14 +270,6 @@ export function SupplyDrawer({
                   />
                 </div>
               </Field>
-              <Field label="Eigene Beschriftung" hint="optional – sonst aus dem Inhalt gebildet">
-                <input
-                  defaultValue={supply.pack_size ?? ""}
-                  onBlur={(event) => set({ pack_size: event.target.value || null })}
-                  className={inputClass}
-                  placeholder={supply.pack_label ?? "z. B. 2x 250 ml"}
-                />
-              </Field>
               <Field label="Preis pro Packung">
                 <input
                   type="number"
@@ -285,17 +277,6 @@ export function SupplyDrawer({
                   defaultValue={supply.price ?? ""}
                   onBlur={(event) =>
                     set({ price: event.target.value ? Number(event.target.value) : null })
-                  }
-                  className={inputClass}
-                />
-              </Field>
-              <Field label="Normalpreis" hint="ohne Abo – zeigt die Ersparnis">
-                <input
-                  type="number"
-                  step="0.01"
-                  defaultValue={supply.regular_price ?? ""}
-                  onBlur={(event) =>
-                    set({ regular_price: event.target.value ? Number(event.target.value) : null })
                   }
                   className={inputClass}
                 />

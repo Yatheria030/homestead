@@ -3,6 +3,15 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.1] – 2026-09-07
+
+### Removed
+
+* "Custom label" and "regular price" as separate form fields — two rarely-needed
+  inputs cluttering the common case. Existing data isn't touched; a custom label or
+  regular price already saved on an item still shows wherever it did before, there's
+  just no input for setting new ones anymore.
+
 ## [0.6.0] – 2026-09-07
 
 ### Added
@@ -105,6 +114,7 @@ follows [Semantic Versioning](https://semver.org/).
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.6.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.1
 [0.6.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.0
 [0.5.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.5.0
