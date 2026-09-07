@@ -3,6 +3,16 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.2] – 2026-09-07
+
+### Changed
+
+* The supplies grid fits on screen without scrolling sideways. List and location are
+  gone from the table (both still editable in the detail panel), and so are contents
+  and price per unit — those two live in the card view, which is one click away.
+* The status chip became a colored dot, and the per-row trash icon moved into the
+  detail panel, to buy back the width. Everything else stayed.
+
 ## [0.7.1] – 2026-09-07
 
 ### Added
@@ -30,6 +40,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 The trash view is unchanged; it's a short, occasional list and didn't need the grid
 treatment.
+
+## [0.6.3] – 2026-09-07
 
 ### Fixed
 
@@ -159,6 +171,7 @@ treatment.
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.2
 [0.7.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.0
 [0.6.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.3

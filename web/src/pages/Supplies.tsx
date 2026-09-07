@@ -16,18 +16,17 @@ import {
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { Grid, Td, Th } from "../components/Grid";
-import { CheckCell, NumberCell, SelectCell, TextCell } from "../components/cells";
+import { CheckCell, NumberCell, TextCell } from "../components/cells";
 import { QuickBuyButton } from "../components/QuickBuyButton";
 import { SupplyCardRow } from "../components/SupplyCardRow";
 import { SupplyDrawer } from "../components/SupplyDrawer";
-import { Button, Card, Chip, EmptyState } from "../components/ui";
+import { Button, Card, EmptyState } from "../components/ui";
 import {
   SUPPLY_STATUS,
   colorOf,
   dateLabel,
   euro,
   rhythmLabel,
-  unitPrice,
   untilPurchase,
 } from "../lib/format";
 import {
@@ -43,7 +42,7 @@ import type { Supply } from "../types";
 type Smart = "all" | "order" | "soon" | "subscription";
 type View = "grid" | "cards";
 
-const COLUMNS = 14;
+const COLUMNS = 9;
 const VIEW_KEY = "homestead-vorrat-view";
 
 /** Gewählte Ansicht merken - die Entscheidung ist Geschmackssache, nicht pro Besuch neu. */
@@ -171,12 +170,6 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
 
   const monthly = rows.reduce((sum, supply) => sum + (supply.monthly_cost ?? 0), 0);
 
-  const listOptions = lists.map((list) => ({
-    value: list.id,
-    label: `${list.icon ? `${list.icon} ` : ""}${list.name}`,
-    color: list.color,
-  }));
-
   const addSupply = () => {
     const name = draft.trim();
     if (!name) return;
@@ -198,32 +191,19 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
     { key: "subscription", label: "Im Abo", icon: RefreshCw, color: "teal" },
   ];
 
-  const renderRow = (supply: Supply, index: number) => {
+  const renderRow = (supply: Supply) => {
     const status = SUPPLY_STATUS[supply.status];
     return (
       <tr key={supply.id} className={`group transition hover:bg-raised ${supply.active ? "" : "opacity-45"}`}>
-        <Td padded className="text-center text-[12px] text-faint">
-          {index + 1}
-        </Td>
-        <Td padded>
-          <Chip label={status.label} color={status.color} />
+        <Td padded className="text-center">
+          <span
+            className="dot inline-block size-2.5 rounded-full align-middle"
+            style={{ ["--chip" as string]: colorOf(status.color) }}
+            title={status.label}
+          />
         </Td>
         <Td className="font-medium">
           <TextCell value={supply.name} onCommit={(name) => actions.update(supply.id, { name })} />
-        </Td>
-        <Td>
-          <SelectCell
-            value={supply.list_id}
-            options={listOptions}
-            placeholder="Ohne Liste"
-            onCommit={(list_id) => actions.update(supply.id, { list_id })}
-          />
-        </Td>
-        <Td>
-          <TextCell
-            value={supply.location}
-            onCommit={(location) => actions.update(supply.id, { location })}
-          />
         </Td>
         <Td>
           <NumberCell
@@ -247,20 +227,12 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
             {untilPurchase(supply.days_until_purchase)}
           </span>
         </Td>
-        <Td padded className="text-muted">
-          {supply.pack_label ?? <span className="text-faint">–</span>}
-        </Td>
         <Td>
           <NumberCell
             value={supply.price}
             money
             onCommit={(price) => actions.update(supply.id, { price })}
           />
-        </Td>
-        <Td padded className="text-right tabular-nums text-muted">
-          {unitPrice(supply.price_per_unit, supply.unit) ?? (
-            <span className="text-faint">–</span>
-          )}
         </Td>
         <Td>
           <CheckCell
@@ -294,17 +266,10 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
             <QuickBuyButton supply={supply} onBuy={(packs) => actions.restock(supply.id, packs)} />
             <button
               onClick={() => setOpenId(supply.id)}
-              title="Details öffnen"
+              title="Details öffnen – dort auch löschen"
               className="grid size-7 shrink-0 place-items-center rounded-md text-faint transition hover:bg-line-soft hover:text-ink"
             >
               <ChevronRight size={15} />
-            </button>
-            <button
-              onClick={() => actions.remove(supply.id)}
-              title="In den Papierkorb"
-              className="grid size-7 shrink-0 place-items-center rounded-md text-faint opacity-0 transition hover:bg-rose-500/10 hover:text-rose-500 group-hover:opacity-100"
-            >
-              <Trash2 size={14} />
             </button>
           </div>
         </Td>
@@ -516,33 +481,26 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               ))}
             </Card>
           ) : (
-            <Grid minWidth={1660}>
+            <Grid minWidth={900}>
               <thead>
                 <tr>
-                  <Th width={40} align="center">
-                    #
+                  <Th width={36} align="center">
+                    <span title="Status">•</span>
                   </Th>
-                  <Th width={100}>Status</Th>
-                  <Th width={190}>Artikel</Th>
-                  <Th width={130}>Liste</Th>
-                  <Th width={110}>Ort</Th>
-                  <Th width={100} align="right">
+                  <Th width={150}>Artikel</Th>
+                  <Th width={80} align="right">
                     Bestand
                   </Th>
-                  <Th width={170}>Rhythmus</Th>
-                  <Th width={130}>Nächster Kauf</Th>
-                  <Th width={110}>Inhalt</Th>
-                  <Th width={100} align="right">
+                  <Th width={130}>Rhythmus</Th>
+                  <Th width={105}>Nächster Kauf</Th>
+                  <Th width={90} align="right">
                     Preis
                   </Th>
-                  <Th width={110} align="right">
-                    je Einheit
-                  </Th>
-                  <Th width={60} align="center">
+                  <Th width={56} align="center">
                     Abo
                   </Th>
-                  <Th width={150}>Anbieter</Th>
-                  <Th width={190} align="right">
+                  <Th width={95}>Anbieter</Th>
+                  <Th width={130} align="right">
                     Aktion
                   </Th>
                 </tr>
@@ -571,12 +529,9 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                 <tfoot>
                   <tr className="bg-raised">
                     <td colSpan={5} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
-                      Vorrat gesamt
+                      Vorrat gesamt · pro Monat
                     </td>
-                    <td colSpan={2} className="px-2.5 py-2.5 text-[12px] text-muted">
-                      pro Monat
-                    </td>
-                    <td colSpan={7} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
+                    <td colSpan={4} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
                       {euro(monthly)}
                     </td>
                   </tr>
