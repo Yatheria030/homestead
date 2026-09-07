@@ -145,6 +145,8 @@ export function useSupplyListActions() {
   );
   return {
     create: (body: Partial<SupplyList>) => create.mutate([body]),
+    /** Warten auf den neu angelegten Eintrag – die Zelle braucht die Id zurueck. */
+    createAsync: (body: Partial<SupplyList>) => create.mutateAsync([body]),
     update: (id: number, body: Partial<SupplyList>) => update.mutate([id, body]),
     remove: (id: number) => remove.mutate([id]),
   };

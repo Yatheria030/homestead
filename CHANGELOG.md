@@ -7,6 +7,21 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.10] – 2026-09-07
+> tagline: Give lists a face
+
+### Added
+
+* The inline "new list" form in the supplies table now takes an emoji alongside the
+  name, so a freshly created list can already have a face — no more bare bullet
+  in the dropdown.
+
+### Changed
+
+* The release image build now ships `linux/arm64` only, which cuts the build time
+  roughly in half. Runners can still pull a working image on Apple Silicon and
+  Linux ARM directly.
+
 ## [0.7.9] – 2026-09-07
 > tagline: Edit the list right in the table
 

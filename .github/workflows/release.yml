@@ -91,14 +91,17 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          # Zuvor amd64+arm64: zwei qemu-Builds nebeneinander, ~4 Min ohne Cache.
+          # Mit nur arm64 (Apple Silicon / Linux ARM) halbiert sich die Bauzeit;
+          # wer amd64 braucht, muss selbst bauen - wird hier nicht mehr gepusht.
+          platforms: linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # type=gha-Cache entfernt: bei nacheinander getagten Runs blockieren sich
           # die Cache-Locks gegenseitig ("deadlock") und die Builds hängen ewig.
           # Für Einweg-Tag-Builds ohne fortlaufende Dev-Iteration bringt der Cache
-          # kaum Mehrwert - der Build dauert max. ~4 Min ohne Cache.
+          # kaum Mehrwert - der Build dauert max. ~2 Min ohne Cache auf einer Arch.
           # Provenance-Attestation pusht ein zusaetzliches Referrer-Artefakt in die
           # Registry - das scheitert bei privaten GHCR-Paketen zuverlaessig mit
           # "denied: permission_denied: read_package", unabhaengig von den sonstigen
