@@ -37,3 +37,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Provenance-Attestation pusht ein zusaetzliches Referrer-Artefakt in die
+          # Registry - das scheitert bei privaten GHCR-Paketen zuverlaessig mit
+          # "denied: permission_denied: read_package", unabhaengig von den sonstigen
+          # Rechten. Wird hier nicht gebraucht, also ausgeschaltet.
+          provenance: false
+          sbom: false
