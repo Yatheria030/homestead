@@ -21,30 +21,26 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Changelog-Sektion extrahieren
-        id: notes
-        env:
-          VERSION: ${{ github.ref_name }}
-        run: |
-          # Version ist das Tag ohne v-Prfix, z. B. 0.7.8
-          echo "section=$(python3 - "$VERSION" <<'PY'
-import re, sys
-text = open("CHANGELOG.md", encoding="utf-8").read()
-m = re.search(
-    r"## \[" + re.escape(sys.argv[1]) + r"\]( – [^\n]*)?\n(.*?)(?=\n## \[|\n\[|\Z)",
-    text,
-    re.S,
-)
-print((m.group(2).strip() if m else "Kein Changelog-Eintrag vorhanden."), end="")
-PY
-)" >> "$GITHUB_OUTPUT"
-      - name: Release bauen
+      - name: Release anlegen
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-          VERSION: ${{ github.ref_name }}
-          SECTION: ${{ steps.notes.outputs.section }}
         run: |
+          # Version ist das Tag ohne v-Prfix, z. B. 0.7.8. Kein Heredoc: der
+          # Abschluss darf dabei nur an Spalte 0 stehen und zerrt dann gegen
+          # die Blockskala
+          VERSION="${TAG#v}"
+          SECTION="$(python3 - "$VERSION" <<'PYEOF'
+          import re, sys
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          m = re.search(
+              r"## \[" + re.escape(sys.argv[1]) + r"\]( – [^\n]*)?\n(.*?)(?=\n## \[|\n\[|\Z)",
+              text,
+              re.S,
+          )
+          print(m.group(2).strip() if m else "Kein Changelog-Eintrag vorhanden.", end="")
+          PYEOF
+          )"
           # Ueberschreiben erlaubt: schon vorhanden und neu getaggt ist kein
           # Fehlerfall, sondern eine Korrektur
           if gh release view "$TAG" >/dev/null 2>&1; then
