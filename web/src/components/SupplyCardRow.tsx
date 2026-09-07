@@ -186,6 +186,17 @@ export function SupplyCardRow({
         onClick={(event) => event.stopPropagation()}
       >
         <QuickBuyButton supply={supply} onBuy={onRestock} />
+        {supply.url && (
+          <a
+            href={supply.url}
+            target="_blank"
+            rel="noreferrer"
+            title="Bezugslink öffnen"
+            className="grid size-7 place-items-center rounded-md text-faint transition hover:bg-brand/10 hover:text-brand"
+          >
+            <ExternalLink size={14} />
+          </a>
+        )}
         <ChevronRight size={15} className="text-faint" />
       </div>
     </div>

@@ -241,29 +241,22 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
           />
         </Td>
         <Td>
-          <div className="flex h-9 items-center gap-1">
-            <div className="min-w-0 flex-1">
-              <TextCell
-                value={supply.vendor}
-                onCommit={(vendor) => actions.update(supply.id, { vendor })}
-              />
-            </div>
+          <TextCell value={supply.vendor} onCommit={(vendor) => actions.update(supply.id, { vendor })} />
+        </Td>
+        <Td>
+          <div className="flex h-9 items-center justify-end gap-1 px-1.5">
+            <QuickBuyButton supply={supply} onBuy={(packs) => actions.restock(supply.id, packs)} />
             {supply.url && (
               <a
                 href={supply.url}
                 target="_blank"
                 rel="noreferrer"
-                onClick={(event) => event.stopPropagation()}
-                className="shrink-0 pr-2 text-faint hover:text-brand"
+                title="Bezugslink öffnen"
+                className="grid size-7 shrink-0 place-items-center rounded-md text-faint transition hover:bg-brand/10 hover:text-brand"
               >
-                <ExternalLink size={12} />
+                <ExternalLink size={14} />
               </a>
             )}
-          </div>
-        </Td>
-        <Td>
-          <div className="flex h-9 items-center justify-end gap-1 px-1.5">
-            <QuickBuyButton supply={supply} onBuy={(packs) => actions.restock(supply.id, packs)} />
             <button
               onClick={() => setOpenId(supply.id)}
               title="Details öffnen – dort auch löschen"

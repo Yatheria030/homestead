@@ -3,6 +3,14 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.3] – 2026-09-07
+
+### Added
+
+* The per-article purchase link is now a small button in every row's action area,
+  next to the "gekauft" button — in both the grid and the card view. The link no
+  longer hides in the provider column, and that column shows the editable name only.
+
 ## [0.7.2] – 2026-09-07
 
 ### Changed
