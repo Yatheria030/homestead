@@ -37,6 +37,7 @@ export function Th({
   align = "left",
   className = "",
   onResize,
+  separator = false,
 }: {
   children: ReactNode;
   width?: number;
@@ -48,9 +49,15 @@ export function Th({
    * Mindest-/Maximalbreite und speichert ab.
    */
   onResize?: (delta: number) => void;
+  /**
+   * Feine Trennlinie zwischen den Spalten einzeichnen. Standard aus – man
+   * schaltet sie pro Tabelle an, sonst wirkt es auf jedem Grid gleich.
+   */
+  separator?: boolean;
 }) {
   const alignClass =
     align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  const separatorClass = separator ? "border-r border-line last:border-r-0" : "";
   const [grabbing, setGrabbing] = useState(false);
   // Ref statt State: mehrere Pointer-Moves pro Render sind normal, der
   // Referenzwert darf dabei nie "stecken bleiben", sonst addiert sich das
@@ -85,7 +92,7 @@ export function Th({
   return (
     <th
       style={width ? { width, minWidth: width, position: "relative" } : undefined}
-      className={`border-b border-r border-line bg-raised px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wider text-faint last:border-r-0 ${alignClass} ${className}`}
+      className={`border-b border-line bg-raised px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wider text-faint ${separatorClass} ${alignClass} ${className}`}
     >
       <div
         className={`flex items-center gap-1 ${

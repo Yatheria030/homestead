@@ -558,11 +558,11 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
             >
               <thead>
                 <tr>
-                  <Th width={widths.status} align="center" onResize={resize("status")}>
+                  <Th width={widths.status} separator align="center" onResize={resize("status")}>
                     <span title="Status">•</span>
                   </Th>
-                  <Th width={widths.name} onResize={resize("name")}>Artikel</Th>
-                  <Th width={widths.list} onResize={resize("list")}>
+                  <Th width={widths.name} separator onResize={resize("name")}>Artikel</Th>
+                  <Th width={widths.list} separator onResize={resize("list")}>
                     <button
                       onClick={() =>
                         setListSort(listSort ? null : listSort === "asc" ? "desc" : "asc")
@@ -577,19 +577,19 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                       {listSort === "desc" && <ArrowDown size={11} />}
                     </button>
                   </Th>
-                  <Th width={widths.stock} align="right" onResize={resize("stock")}>
+                  <Th width={widths.stock} separator align="right" onResize={resize("stock")}>
                     Bestand
                   </Th>
-                  <Th width={widths.rhythm} onResize={resize("rhythm")}>Rhythmus</Th>
-                  <Th width={widths.next} onResize={resize("next")}>Nächster Kauf</Th>
-                  <Th width={widths.price} align="right" onResize={resize("price")}>
+                  <Th width={widths.rhythm} separator onResize={resize("rhythm")}>Rhythmus</Th>
+                  <Th width={widths.next} separator onResize={resize("next")}>Nächster Kauf</Th>
+                  <Th width={widths.price} separator align="right" onResize={resize("price")}>
                     Preis
                   </Th>
-                  <Th width={widths.subscription} align="center" onResize={resize("subscription")}>
+                  <Th width={widths.subscription} separator align="center" onResize={resize("subscription")}>
                     Abo
                   </Th>
-                  <Th width={widths.vendor} onResize={resize("vendor")}>Anbieter</Th>
-                  <Th width={widths.action} align="right" onResize={resize("action")}>
+                  <Th width={widths.vendor} separator onResize={resize("vendor")}>Anbieter</Th>
+                  <Th width={widths.action} separator align="right" onResize={resize("action")}>
                     Aktion
                   </Th>
                 </tr>

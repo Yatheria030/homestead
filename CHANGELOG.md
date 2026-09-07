@@ -3,12 +3,21 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.8] – 2026-09-07
+
+### Fixed
+
+* The column separators from 0.7.7 were drawn on **every** table (supplies,
+  expenses, subscriptions, pockets). They were meant for the supplies table only —
+  the separators are now opt-in and enabled exactly there, the other tables are
+  back to how they were.
+
 ## [0.7.7] – 2026-09-07
 
 ### Added
 
-* Subtle vertical separators between the table columns, so the header reads like one
-  grid instead of floating words.
+* Subtle vertical separators between the columns of the supplies table, so the
+  header reads like one grid instead of floating words.
 
 ### Fixed
 
@@ -227,6 +236,7 @@ treatment.
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.8]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.8
 [0.7.7]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.7
 [0.7.6]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.6
 [0.7.5]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.5
