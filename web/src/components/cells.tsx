@@ -163,11 +163,13 @@ export function SelectCell<T extends string | number>({
   options,
   onCommit,
   placeholder = "–",
+  display,
 }: {
   value: T | null;
   options: { value: T; label: string; color?: string | null }[];
   onCommit: (value: T | null) => void;
   placeholder?: string;
+  display?: ReactNode;
 }) {
   const [editing, setEditing] = useState(false);
   const current = options.find((option) => option.value === value);
@@ -177,11 +179,12 @@ export function SelectCell<T extends string | number>({
       editing={editing}
       setEditing={setEditing}
       display={
-        current ? (
+        display ??
+        (current ? (
           <Chip label={current.label} color={current.color} />
         ) : (
           <span className="text-faint">{placeholder}</span>
-        )
+        ))
       }
     >
       {(close) => (

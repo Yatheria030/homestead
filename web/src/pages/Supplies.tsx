@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { Grid, Td, Th } from "../components/Grid";
-import { CheckCell, NumberCell, TextCell } from "../components/cells";
+import { CheckCell, NumberCell, SelectCell, TextCell } from "../components/cells";
 import { QuickBuyButton } from "../components/QuickBuyButton";
 import { SupplyCardRow } from "../components/SupplyCardRow";
 import { SupplyDrawer } from "../components/SupplyDrawer";
@@ -253,6 +253,11 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
     { key: "subscription", label: "Im Abo", icon: RefreshCw, color: "teal" },
   ];
 
+  const listOptions = useMemo(
+    () => lists.map((list) => ({ value: list.id, label: list.name, color: list.color })),
+    [lists],
+  );
+
   const renderRow = (supply: Supply) => {
     const status = SUPPLY_STATUS[supply.status];
     return (
@@ -268,20 +273,26 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
           <TextCell value={supply.name} onCommit={(name) => actions.update(supply.id, { name })} />
         </Td>
         <Td>
-          {supply.supply_list ? (
-            <span
-              className="inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[12px] font-medium"
-              style={{
-                color: colorOf(supply.supply_list.color),
-                background: `color-mix(in srgb, ${colorOf(supply.supply_list.color)} 12%, transparent)`,
-              }}
-            >
-              <span className="shrink-0">{supply.supply_list.icon ?? "•"}</span>
-              <span className="truncate">{supply.supply_list.name}</span>
-            </span>
-          ) : (
-            <span className="text-faint">–</span>
-          )}
+          <SelectCell
+            value={supply.list_id}
+            options={listOptions}
+            onCommit={(list_id) => actions.update(supply.id, { list_id })}
+            placeholder="Keine Liste"
+            display={
+              supply.supply_list ? (
+                <span
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[12px] font-medium"
+                  style={{
+                    color: colorOf(supply.supply_list.color),
+                    background: `color-mix(in srgb, ${colorOf(supply.supply_list.color)} 12%, transparent)`,
+                  }}
+                >
+                  <span className="shrink-0">{supply.supply_list.icon ?? "•"}</span>
+                  <span className="truncate">{supply.supply_list.name}</span>
+                </span>
+              ) : undefined
+            }
+          />
         </Td>
         <Td>
           <NumberCell
