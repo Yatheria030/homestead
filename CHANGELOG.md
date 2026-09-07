@@ -3,7 +3,22 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
-## [0.6.3] – 2026-09-07
+## [0.7.0] – 2026-09-07
+
+### Changed
+
+* Supplies is now a proper data grid, matching the Expenses page's look and feel:
+  a sticky-header table with click-to-edit cells for name, list, location, price and
+  subscription — instead of a card list.
+* **Stock is now its own editable column** — click it, type the count, done. No more
+  detour through the detail panel just to correct how much is left.
+* A status column (colored chip) and a rhythm/next-purchase column give the same
+  at-a-glance read the card list did, just denser.
+* Row actions (buy, open details, move to trash) live in one column on the right,
+  visible on hover — same pattern as the Expenses grid.
+
+The trash view is unchanged; it's a short, occasional list and didn't need the grid
+treatment.
 
 ### Fixed
 
@@ -133,6 +148,7 @@ follows [Semantic Versioning](https://semver.org/).
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.0
 [0.6.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.3
 [0.6.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.2
 [0.6.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.1

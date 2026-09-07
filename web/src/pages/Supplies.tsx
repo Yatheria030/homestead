@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ChevronRight,
   ExternalLink,
@@ -13,16 +13,17 @@ import {
   Trash2,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
+import { Grid, Td, Th } from "../components/Grid";
+import { CheckCell, NumberCell, SelectCell, TextCell } from "../components/cells";
 import { QuickBuyButton } from "../components/QuickBuyButton";
 import { SupplyDrawer } from "../components/SupplyDrawer";
-import { Button, Card, EmptyState } from "../components/ui";
+import { Button, Card, Chip, EmptyState } from "../components/ui";
 import {
   SUPPLY_STATUS,
   colorOf,
   dateLabel,
   euro,
   rhythmLabel,
-  unitPrice,
   untilPurchase,
 } from "../lib/format";
 import {
@@ -37,183 +38,7 @@ import type { Supply } from "../types";
 
 type Smart = "all" | "order" | "soon" | "subscription";
 
-/** Balken: wo im Kaufzyklus stehen wir gerade? */
-function CycleBar({ supply }: { supply: Supply }) {
-  const status = SUPPLY_STATUS[supply.status];
-  const cycle = Math.max(supply.purchase_interval_days ?? 0, 1);
-  const left = Math.max(0, supply.days_left ?? 0);
-  const used = Math.min(100, Math.max(0, ((cycle - left) / cycle) * 100));
-  const buyAt = Math.min(100, ((cycle - supply.buffer_days) / cycle) * 100);
-
-  return (
-    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-line-soft">
-      <div
-        className="h-full rounded-full transition-all"
-        style={{ width: `${used}%`, background: colorOf(status.color) }}
-      />
-      {/* Markierung: ab hier kaufen, damit der Vorlauf reicht */}
-      <div
-        className="absolute inset-y-0 w-px bg-[var(--faint)] opacity-70"
-        style={{ left: `${buyAt}%` }}
-        title={`Kaufen, wenn noch ${supply.buffer_days} Tage übrig sind`}
-      />
-    </div>
-  );
-}
-
-function SupplyRow({
-  supply,
-  onOpen,
-  onRestock,
-  onRename,
-}: {
-  supply: Supply;
-  onOpen: () => void;
-  onRestock: (packs: number) => void;
-  onRename: (name: string) => void;
-}) {
-  const status = SUPPLY_STATUS[supply.status];
-  const perUnit = unitPrice(supply.price_per_unit, supply.unit);
-  // Menge für den Preis: "24x 85 g für 18,49 € (0,77 € / Dose)"
-  const priceLine = [
-    supply.pack_label,
-    supply.price !== null ? `${euro(supply.price)}${perUnit ? ` · ${perUnit}` : ""}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(supply.name);
-  // Von außen aktualisierte Namen übernehmen, solange gerade nicht editiert wird
-  useEffect(() => {
-    if (!editing) setDraft(supply.name);
-  }, [supply.name, editing]);
-
-  const commit = () => {
-    setEditing(false);
-    const trimmed = draft.trim();
-    if (trimmed && trimmed !== supply.name) onRename(trimmed);
-    else setDraft(supply.name);
-  };
-
-  return (
-    <div
-      className={`group grid cursor-pointer grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-line-soft px-4 py-3 transition last:border-0 hover:bg-raised md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.5fr)_auto] ${
-        supply.active ? "" : "opacity-45"
-      }`}
-      onClick={onOpen}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <span
-          className="dot size-2.5 shrink-0 rounded-full"
-          style={{ ["--chip" as string]: colorOf(status.color) }}
-        />
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            {editing ? (
-              <input
-                autoFocus
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onBlur={commit}
-                onClick={(event) => event.stopPropagation()}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") commit();
-                  if (event.key === "Escape") {
-                    setDraft(supply.name);
-                    setEditing(false);
-                  }
-                }}
-                className="-mx-1.5 min-w-0 flex-1 rounded-md bg-raised px-1.5 text-[14px] font-medium outline-none ring-2 ring-brand/25"
-              />
-            ) : (
-              <span
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setEditing(true);
-                }}
-                title="Zum Umbenennen klicken"
-                className="truncate rounded-md px-1.5 -mx-1.5 text-[14px] font-medium decoration-dotted decoration-faint hover:bg-line-soft hover:underline"
-              >
-                {supply.name}
-              </span>
-            )}
-            {supply.is_subscription && (
-              <RefreshCw size={12} className="shrink-0 text-teal-500" />
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 truncate text-[12px] text-muted">
-            <span className="truncate">{priceLine || "Preis und Menge fehlen"}</span>
-            {supply.vendor && (
-              <>
-                <span className="text-faint">·</span>
-                {supply.url ? (
-                  <a
-                    href={supply.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(event) => event.stopPropagation()}
-                    className="inline-flex shrink-0 items-center gap-1 truncate font-medium text-brand hover:underline"
-                    title={`Bei ${supply.vendor} nachbestellen`}
-                  >
-                    {supply.vendor}
-                    <ExternalLink size={11} />
-                  </a>
-                ) : (
-                  <span className="shrink-0 truncate">{supply.vendor}</span>
-                )}
-              </>
-            )}
-            {!supply.vendor && supply.url && (
-              <a
-                href={supply.url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(event) => event.stopPropagation()}
-                className="inline-flex shrink-0 items-center gap-1 font-medium text-brand hover:underline"
-              >
-                Bezugsquelle <ExternalLink size={11} />
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="col-span-2 min-w-0 md:col-span-1">
-        <div className="mb-1 flex items-baseline justify-between gap-2 text-[12px]">
-          <span className="flex min-w-0 items-center gap-1 truncate font-medium">
-            {supply.rhythm_source === "history" && (
-              <History
-                size={11}
-                className="shrink-0 text-faint"
-                aria-label="aus der Kaufhistorie berechnet"
-              />
-            )}
-            <span className="truncate">
-              {rhythmLabel(supply.effective_packs_per_purchase, supply.purchase_interval_days)}
-            </span>
-          </span>
-          <span
-            className="shrink-0 font-medium tabular-nums"
-            style={{ color: colorOf(status.color) }}
-            title={supply.buy_on ? `Kaufen am ${dateLabel(supply.buy_on)}` : undefined}
-          >
-            {untilPurchase(supply.days_until_purchase)}
-          </span>
-        </div>
-        <CycleBar supply={supply} />
-      </div>
-
-      <div
-        className="flex shrink-0 items-center gap-1 justify-self-end"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <QuickBuyButton supply={supply} onBuy={onRestock} />
-        <ChevronRight size={15} className="text-faint" />
-      </div>
-    </div>
-  );
-}
+const COLUMNS = 12;
 
 function TrashRow({
   supply,
@@ -317,7 +142,12 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
   }, [supplies, search, smart, listId]);
 
   const monthly = rows.reduce((sum, supply) => sum + (supply.monthly_cost ?? 0), 0);
-  const open = supplies.find((supply) => supply.id === openId) ?? null;
+
+  const listOptions = lists.map((list) => ({
+    value: list.id,
+    label: `${list.icon ? `${list.icon} ` : ""}${list.name}`,
+    color: list.color,
+  }));
 
   const addSupply = () => {
     const name = draft.trim();
@@ -339,6 +169,112 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
     { key: "soon", label: "Bald dran", icon: Timer, color: "amber" },
     { key: "subscription", label: "Im Abo", icon: RefreshCw, color: "teal" },
   ];
+
+  const renderRow = (supply: Supply, index: number) => {
+    const status = SUPPLY_STATUS[supply.status];
+    return (
+      <tr key={supply.id} className={`group transition hover:bg-raised ${supply.active ? "" : "opacity-45"}`}>
+        <Td padded className="text-center text-[12px] text-faint">
+          {index + 1}
+        </Td>
+        <Td padded>
+          <Chip label={status.label} color={status.color} />
+        </Td>
+        <Td className="font-medium">
+          <TextCell value={supply.name} onCommit={(name) => actions.update(supply.id, { name })} />
+        </Td>
+        <Td>
+          <SelectCell
+            value={supply.list_id}
+            options={listOptions}
+            placeholder="Ohne Liste"
+            onCommit={(list_id) => actions.update(supply.id, { list_id })}
+          />
+        </Td>
+        <Td>
+          <TextCell
+            value={supply.location}
+            onCommit={(location) => actions.update(supply.id, { location })}
+          />
+        </Td>
+        <Td>
+          <NumberCell
+            value={supply.stock_now}
+            step="0.1"
+            onCommit={(value) => actions.setStock(supply.id, value ?? 0)}
+          />
+        </Td>
+        <Td padded>
+          <div className="flex items-center gap-1 truncate">
+            {supply.rhythm_source === "history" && (
+              <History size={11} className="shrink-0 text-faint" aria-label="aus der Kaufhistorie berechnet" />
+            )}
+            <span className="truncate">
+              {rhythmLabel(supply.effective_packs_per_purchase, supply.purchase_interval_days)}
+            </span>
+          </div>
+        </Td>
+        <Td padded>
+          <span className="font-medium tabular-nums" style={{ color: colorOf(status.color) }}>
+            {untilPurchase(supply.days_until_purchase)}
+          </span>
+        </Td>
+        <Td>
+          <NumberCell
+            value={supply.price}
+            money
+            onCommit={(price) => actions.update(supply.id, { price })}
+          />
+        </Td>
+        <Td>
+          <CheckCell
+            value={supply.is_subscription}
+            onCommit={(is_subscription) => actions.update(supply.id, { is_subscription })}
+          />
+        </Td>
+        <Td>
+          <div className="flex h-9 items-center gap-1">
+            <div className="min-w-0 flex-1">
+              <TextCell
+                value={supply.vendor}
+                onCommit={(vendor) => actions.update(supply.id, { vendor })}
+              />
+            </div>
+            {supply.url && (
+              <a
+                href={supply.url}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="shrink-0 pr-2 text-faint hover:text-brand"
+              >
+                <ExternalLink size={12} />
+              </a>
+            )}
+          </div>
+        </Td>
+        <Td>
+          <div className="flex h-9 items-center justify-end gap-1 px-1.5">
+            <QuickBuyButton supply={supply} onBuy={(packs) => actions.restock(supply.id, packs)} />
+            <button
+              onClick={() => setOpenId(supply.id)}
+              title="Details öffnen"
+              className="grid size-7 shrink-0 place-items-center rounded-md text-faint transition hover:bg-line-soft hover:text-ink"
+            >
+              <ChevronRight size={15} />
+            </button>
+            <button
+              onClick={() => actions.remove(supply.id)}
+              title="In den Papierkorb"
+              className="grid size-7 shrink-0 place-items-center rounded-md text-faint opacity-0 transition hover:bg-rose-500/10 hover:text-rose-500 group-hover:opacity-100"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </Td>
+      </tr>
+    );
+  };
 
   return (
     <>
@@ -442,16 +378,12 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               <button
                 onClick={() => setShowTrash(true)}
                 className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition ${
-                  showTrash
-                    ? "bg-brand-soft text-brand"
-                    : "text-muted hover:bg-line-soft hover:text-ink"
+                  showTrash ? "bg-brand-soft text-brand" : "text-muted hover:bg-line-soft hover:text-ink"
                 }`}
               >
                 <Trash2 size={15} />
                 <span className="flex-1 text-left">Papierkorb</span>
-                {trash.length > 0 && (
-                  <span className="tabular-nums text-faint">{trash.length}</span>
-                )}
+                {trash.length > 0 && <span className="tabular-nums text-faint">{trash.length}</span>}
               </button>
             </div>
           </Card>
@@ -500,36 +432,81 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               ))}
             </Card>
           ) : (
-            <Card padded={false}>
-              {isLoading && <EmptyState title="Lädt…" />}
-              {!isLoading && rows.length === 0 && (
-                <EmptyState
-                  title="Nichts in dieser Liste"
-                  hint="Oben hinzufügen oder einen anderen Filter wählen."
-                />
+            <Grid minWidth={1440}>
+              <thead>
+                <tr>
+                  <Th width={40} align="center">
+                    #
+                  </Th>
+                  <Th width={100}>Status</Th>
+                  <Th width={190}>Artikel</Th>
+                  <Th width={130}>Liste</Th>
+                  <Th width={110}>Ort</Th>
+                  <Th width={100} align="right">
+                    Bestand
+                  </Th>
+                  <Th width={170}>Rhythmus</Th>
+                  <Th width={130}>Nächster Kauf</Th>
+                  <Th width={100} align="right">
+                    Preis
+                  </Th>
+                  <Th width={60} align="center">
+                    Abo
+                  </Th>
+                  <Th width={150}>Anbieter</Th>
+                  <Th width={190} align="right">
+                    Aktion
+                  </Th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading && (
+                  <tr>
+                    <td colSpan={COLUMNS}>
+                      <EmptyState title="Lädt…" />
+                    </td>
+                  </tr>
+                )}
+                {!isLoading && rows.length === 0 && (
+                  <tr>
+                    <td colSpan={COLUMNS}>
+                      <EmptyState
+                        title="Nichts in dieser Liste"
+                        hint="Oben hinzufügen oder einen anderen Filter wählen."
+                      />
+                    </td>
+                  </tr>
+                )}
+                {rows.map(renderRow)}
+              </tbody>
+              {rows.length > 0 && (
+                <tfoot>
+                  <tr className="bg-raised">
+                    <td colSpan={5} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
+                      Vorrat gesamt
+                    </td>
+                    <td colSpan={2} className="px-2.5 py-2.5 text-[12px] text-muted">
+                      pro Monat
+                    </td>
+                    <td colSpan={5} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
+                      {euro(monthly)}
+                    </td>
+                  </tr>
+                </tfoot>
               )}
-              {rows.map((supply) => (
-                <SupplyRow
-                  key={supply.id}
-                  supply={supply}
-                  onOpen={() => setOpenId(supply.id)}
-                  onRename={(name) => actions.update(supply.id, { name })}
-                  onRestock={(packs) => actions.restock(supply.id, packs)}
-                />
-              ))}
-            </Card>
+            </Grid>
           )}
 
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-faint">
             <Package size={13} />
             {showTrash
               ? "Ein Klick auf „Wiederherstellen“ bringt den Artikel samt Kaufhistorie zurück."
-              : "Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge. „Gekauft“ startet ihn neu – Reste aus dem letzten Einkauf werden dabei mitgerechnet."}
+              : "Zellen sind direkt anklickbar. Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge – „gekauft“ startet ihn neu."}
           </div>
         </div>
       </div>
 
-      <SupplyDrawer supply={open} onClose={() => setOpenId(null)} />
+      <SupplyDrawer supply={supplies.find((s) => s.id === openId) ?? null} onClose={() => setOpenId(null)} />
     </>
   );
 }

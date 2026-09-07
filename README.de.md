@@ -67,6 +67,8 @@ alle 6 Wochen“) und den nächsten Kauftermin. Wer auf Masse kauft, trägt einf
 Käufe ein und sieht, wie weit der Rhythmus dadurch auseinanderrückt. Listen (Katze, Bad,
 Küche …) sortieren das Ganze wie in einer Aufgaben-App. Löschen landet im Papierkorb statt
 im Nichts – 30 Tage lang wiederherstellbar, samt Kaufhistorie, bevor es endgültig weg ist.
+Die Liste selbst ist ein Tabellen-Grid wie bei den Ausgaben – jede Zelle anklickbar, auch
+der Bestand.
 
 **Einkaufsliste** – alles, was seinen Kauftermin erreicht hat, gebündelt nach Anbieter,
 mit Menge und Summe. Abhaken bucht den Kauf und startet den Rhythmus neu.

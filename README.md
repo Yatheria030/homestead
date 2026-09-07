@@ -69,7 +69,8 @@ with the amount you currently have on hand, that tells you the buying rhythm ("3
 every ~5 weeks") and the next buying date. Buying in bulk simply means logging bigger
 purchases and watching the rhythm stretch. Lists (Cat, Bathroom, Kitchen …) organise it
 like a task app. Delete an item and it goes to a trash instead of vanishing — 30 days to
-bring it back, purchase history included, before it's gone for good.
+bring it back, purchase history included, before it's gone for good. The list itself is a
+spreadsheet-style grid, same as Expenses — click any cell to edit it, stock included.
 
 **Shopping list** — everything that has reached its buying date, grouped by vendor, with
 quantity and total. Ticking an item books the purchase and restarts its rhythm.
