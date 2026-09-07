@@ -14,6 +14,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release:
+    name: GitHub Release anlegen
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Changelog-Sektion extrahieren
+        id: notes
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          # Version ist das Tag ohne v-Prfix, z. B. 0.7.8
+          echo "section=$(python3 - "$VERSION" <<'PY'
+import re, sys
+text = open("CHANGELOG.md", encoding="utf-8").read()
+m = re.search(
+    r"## \[" + re.escape(sys.argv[1]) + r"\]( – [^\n]*)?\n(.*?)(?=\n## \[|\n\[|\Z)",
+    text,
+    re.S,
+)
+print((m.group(2).strip() if m else "Kein Changelog-Eintrag vorhanden."), end="")
+PY
+)" >> "$GITHUB_OUTPUT"
+      - name: Release bauen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ github.ref_name }}
+          SECTION: ${{ steps.notes.outputs.section }}
+        run: |
+          # Ueberschreiben erlaubt: schon vorhanden und neu getaggt ist kein
+          # Fehlerfall, sondern eine Korrektur
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$VERSION" --notes "$SECTION" || true
+          else
+            gh release create "$TAG" --title "$VERSION" --notes "$SECTION" --latest
+          fi
+
   image:
     name: Container image veröffentlichen
     runs-on: ubuntu-latest
