@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Check,
   ChevronRight,
@@ -65,10 +65,12 @@ function SupplyRow({
   supply,
   onOpen,
   onRestock,
+  onRename,
 }: {
   supply: Supply;
   onOpen: () => void;
   onRestock: () => void;
+  onRename: (name: string) => void;
 }) {
   const status = SUPPLY_STATUS[supply.status];
   const perUnit = unitPrice(supply.price_per_unit, supply.unit);
@@ -79,6 +81,20 @@ function SupplyRow({
   ]
     .filter(Boolean)
     .join(" · ");
+
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(supply.name);
+  // Von außen aktualisierte Namen übernehmen, solange gerade nicht editiert wird
+  useEffect(() => {
+    if (!editing) setDraft(supply.name);
+  }, [supply.name, editing]);
+
+  const commit = () => {
+    setEditing(false);
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== supply.name) onRename(trimmed);
+    else setDraft(supply.name);
+  };
 
   return (
     <div
@@ -94,7 +110,34 @@ function SupplyRow({
         />
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="truncate text-[14px] font-medium">{supply.name}</span>
+            {editing ? (
+              <input
+                autoFocus
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onBlur={commit}
+                onClick={(event) => event.stopPropagation()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") commit();
+                  if (event.key === "Escape") {
+                    setDraft(supply.name);
+                    setEditing(false);
+                  }
+                }}
+                className="-mx-1.5 min-w-0 flex-1 rounded-md bg-raised px-1.5 text-[14px] font-medium outline-none ring-2 ring-brand/25"
+              />
+            ) : (
+              <span
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setEditing(true);
+                }}
+                title="Zum Umbenennen klicken"
+                className="truncate rounded-md px-1.5 -mx-1.5 text-[14px] font-medium decoration-dotted decoration-faint hover:bg-line-soft hover:underline"
+              >
+                {supply.name}
+              </span>
+            )}
             {supply.is_subscription && (
               <RefreshCw size={12} className="shrink-0 text-teal-500" />
             )}
@@ -476,6 +519,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   key={supply.id}
                   supply={supply}
                   onOpen={() => setOpenId(supply.id)}
+                  onRename={(name) => actions.update(supply.id, { name })}
                   onRestock={() =>
                     actions.restock(supply.id, Math.max(1, supply.suggested_packs))
                   }
