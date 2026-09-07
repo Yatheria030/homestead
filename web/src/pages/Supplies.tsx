@@ -3,6 +3,7 @@ import {
   Check,
   ChevronRight,
   ExternalLink,
+  History,
   Inbox,
   Package,
   Plus,
@@ -133,8 +134,17 @@ function SupplyRow({
 
       <div className="col-span-2 min-w-0 md:col-span-1">
         <div className="mb-1 flex items-baseline justify-between gap-2 text-[12px]">
-          <span className="truncate font-medium">
-            {rhythmLabel(supply.packs_per_purchase, supply.purchase_interval_days)}
+          <span className="flex min-w-0 items-center gap-1 truncate font-medium">
+            {supply.rhythm_source === "history" && (
+              <History
+                size={11}
+                className="shrink-0 text-faint"
+                aria-label="aus der Kaufhistorie berechnet"
+              />
+            )}
+            <span className="truncate">
+              {rhythmLabel(supply.effective_packs_per_purchase, supply.purchase_interval_days)}
+            </span>
           </span>
           <span
             className="shrink-0 font-medium tabular-nums"

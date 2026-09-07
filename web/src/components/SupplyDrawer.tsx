@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, ExternalLink, Trash2, X } from "lucide-react";
 import { Button, Chip, Field, inputClass } from "./ui";
+import { PurchaseHistory } from "./PurchaseHistory";
 import {
   SUPPLY_STATUS,
   dateLabel,
@@ -156,35 +157,50 @@ export function SupplyDrawer({
             <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-faint">
               Kaufrhythmus
             </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Eine Packung hält">
-                <DurationInput
-                  days={supply.days_per_pack}
-                  onCommit={(days) => set({ days_per_pack: days })}
-                />
-              </Field>
-              <Field label="Kaufmenge" hint="Packungen je Einkauf">
-                <input
-                  type="number"
-                  step="1"
-                  min="1"
-                  defaultValue={supply.packs_per_purchase}
-                  onBlur={(event) =>
-                    set({ packs_per_purchase: Number(event.target.value || 1) })
-                  }
-                  className={inputClass}
-                />
-              </Field>
-            </div>
 
-            <div className="mt-3 rounded-lg border border-line bg-raised px-3 py-2.5">
+            <div className="rounded-lg border border-line bg-raised px-3 py-2.5">
               <div className="text-[13px] font-medium">
-                {rhythmLabel(supply.packs_per_purchase, supply.purchase_interval_days)}
+                {rhythmLabel(supply.effective_packs_per_purchase, supply.purchase_interval_days)}
               </div>
               <div className="mt-0.5 text-[12px] text-muted">
                 Nächster Einkauf: {dateLabel(supply.buy_on)} ·{" "}
                 {untilPurchase(supply.days_until_purchase)}
                 {supply.runs_out_on && ` · leer am ${dateLabel(supply.runs_out_on)}`}
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <PurchaseHistory supply={supply} />
+            </div>
+
+            <div className="mt-4 rounded-lg border border-line-soft p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[12px] font-medium text-muted">Grobe Schätzung</span>
+                <span className="text-[11px] text-faint">
+                  {supply.rhythm_source === "history"
+                    ? "wird gerade nicht verwendet – genug Käufe vorhanden"
+                    : "wird verwendet, bis genug Käufe vorliegen"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Eine Packung hält etwa">
+                  <DurationInput
+                    days={supply.days_per_pack}
+                    onCommit={(days) => set({ days_per_pack: days })}
+                  />
+                </Field>
+                <Field label="Kaufmenge" hint="Packungen je Einkauf">
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    defaultValue={supply.packs_per_purchase}
+                    onBlur={(event) =>
+                      set({ packs_per_purchase: Number(event.target.value || 1) })
+                    }
+                    className={inputClass}
+                  />
+                </Field>
               </div>
             </div>
 
@@ -216,10 +232,6 @@ export function SupplyDrawer({
                 </div>
               </Field>
             </div>
-            <p className="mt-2 text-[12px] text-faint">
-              Zuletzt gekauft: {dateLabel(supply.last_purchased)}. Beim Kauf zählt die App
-              Reste mit – wenn noch etwas da war, verschiebt sich der nächste Termin.
-            </p>
           </section>
 
           <section>

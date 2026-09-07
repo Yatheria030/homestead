@@ -56,11 +56,15 @@ Jahres- und Quartalsbeiträge werden dabei automatisch auf den Monat umgelegt. P
 lassen sich auf „zählt nicht zur Summe“ stellen – für Posten, die direkt zwischen euch
 laufen statt über einen gemeinsamen Topf.
 
-**Vorrat** – Verbrauchsgüter im Rhythmus statt im Kopf: Katzenstreu, Futter, Filter,
-Zahnpasta, Handseife und so weiter. Zwei Angaben genügen – **wie lange eine Packung hält**
-und **wie viele du pro Einkauf kaufst**. Daraus wird der Kaufrhythmus („2 Packungen alle
-6 Wochen“) und der nächste Kauftermin. Wer auf Masse kauft, stellt einfach die Kaufmenge
-hoch und sieht sofort, wie weit der Rhythmus dadurch auseinanderrückt. Listen (Katze, Bad,
+**Vorrat** – Verbrauchsgüter im Rhythmus statt im Kopf, und der Rhythmus wird
+**gemessen, nicht geschätzt**: du trägst ein, wann du was gekauft hast – auch rückwirkend
+– und Homestead errechnet aus dem Abstand zwischen den Käufen, wie lange eine Packung bei
+dir tatsächlich hält. Der „Gekauft“-Knopf macht das automatisch mit; ein kleines Formular
+im Artikel lässt vergangene Käufe nachtragen oder die heutige Menge korrigieren. Nur bei
+einem ganz neuen Artikel, bevor Käufe vorliegen, füllt eine grobe Schätzung die Lücke.
+Zusammen mit dem Bestand, den du gerade hast, ergibt das den Kaufrhythmus („2 Packungen
+alle 6 Wochen“) und den nächsten Kauftermin. Wer auf Masse kauft, trägt einfach größere
+Käufe ein und sieht, wie weit der Rhythmus dadurch auseinanderrückt. Listen (Katze, Bad,
 Küche …) sortieren das Ganze wie in einer Aufgaben-App.
 
 **Einkaufsliste** – alles, was seinen Kauftermin erreicht hat, gebündelt nach Anbieter,
@@ -146,17 +150,21 @@ Die API ist unter http://localhost:8099/api/docs dokumentiert.
   ausgewiesen.
 ### Vorrat
 
-* **Kaufrhythmus** = Haltbarkeit einer Packung × Kaufmenge. Ein Sack Katzenstreu hält
-  3 Wochen, du kaufst zwei: alle 6 Wochen.
+* **Gemessene Haltbarkeit**: ab zwei eingetragenen Käufen errechnet sich, wie lange eine
+  Packung hält, aus (Tage zwischen dem ältesten und dem jüngsten der letzten 8 Käufe) /
+  (in der Zeit gekaufte Packungen, ohne den jüngsten Kauf – der liegt ja noch ganz oder
+  teilweise im Bestand). Auf Masse kaufen, früher kaufen, später kaufen – alles fließt als
+  echte Daten automatisch mit ein. Erst bei weniger als zwei Käufen füllt eine grobe
+  Schätzung die Lücke.
+* **Kaufrhythmus** = diese Rate × die durchschnittliche Menge pro Kauf. Ein Sack
+  Katzenstreu hält 3 Wochen, du kaufst zwei: alle 6 Wochen.
 * **Nächster Kauftermin** = letzter Einkauf + Rhythmus − Vorlauf. Der Vorlauf sind die
   Tage, die du vor dem Leerstand kaufen willst (Lieferzeit, Puffer).
-* **Reste zählen mit**: War beim Kauf noch etwas da, verschiebt sich der nächste Termin
-  entsprechend nach hinten. Deshalb bleibt der Plan auch dann richtig, wenn du mal früher
-  oder später einkaufst.
+* **Aktueller Bestand** schreibt sich vom zuletzt eingetragenen Wert aus mit der
+  gemessenen Rate herunter – so bleibt „wie viel ist noch da“ auch zwischen den Käufen
+  realistisch.
 * **Status**: überfällig · jetzt kaufen (Vorlauf erreicht) · bald dran · im Plan.
-* **Kaufmenge** ist gleichzeitig der Vorschlag auf der Einkaufsliste – so viel, wie du
-  ohnehin kaufst.
-* **Kosten pro Monat** = Packungspreis / Tage pro Packung × 30,44.
+* **Kosten pro Monat** = Packungspreis / gemessene Tage pro Packung × 30,44.
 * **Abo-Deckung** = gelieferte Menge pro Tag ÷ verbrauchte Menge pro Tag. 100 % heißt:
   das Abo trifft den Verbrauch genau, darunter kaufst du regelmäßig dazu.
 * **Ersparnis pro Jahr** = (Normalpreis − Abopreis) × 365 / Tage pro Packung.

@@ -81,6 +81,13 @@ export interface Supply {
   buy_on: string | null;
   purchase_interval_days: number | null;
   days_until_purchase: number | null;
+  /* aus der Kaufhistorie berechnet */
+  purchase_count: number;
+  avg_purchase_packs: number | null;
+  derived_days_per_pack: number | null;
+  rhythm_source: "history" | "manual" | "unknown";
+  effective_days_per_pack: number | null;
+  effective_packs_per_purchase: number;
   status: SupplyStatus;
   suggested_packs: number;
   price_per_unit: number | null;

@@ -13,7 +13,7 @@ from .migrate import migrate
 from .routers import backups, expenses, master, summary, supplies
 from .seed import seed
 
-app = FastAPI(title="Homestead", version="0.3.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
+app = FastAPI(title="Homestead", version="0.4.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 # Nur fuer die lokale Entwicklung (Vite auf :5173); im Container laeuft alles same-origin.
 app.add_middleware(

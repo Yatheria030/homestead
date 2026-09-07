@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
-import type { Category, Expense, Pocket, Supply, SupplyList } from "../types";
+import type { Category, Expense, Pocket, Purchase, Supply, SupplyList } from "../types";
 
 export const useSummary = () => useQuery({ queryKey: ["summary"], queryFn: api.summary });
 export const useCategories = () =>
@@ -61,7 +61,8 @@ export function useSupplyActions() {
     ["supplies", "shopping-list"],
   );
   const restock = useInvalidating(
-    (id: number, body?: { packs?: number; price?: number }) => api.restock(id, body),
+    (id: number, body?: { packs?: number; price?: number; purchased_on?: string }) =>
+      api.restock(id, body),
     ["supplies", "shopping-list"],
   );
   const setStock = useInvalidating(
@@ -72,8 +73,44 @@ export function useSupplyActions() {
     update: (id: number, body: Partial<Supply>) => update.mutate([id, body]),
     create: (body: Partial<Supply>) => create.mutate([body]),
     remove: (id: number) => remove.mutate([id]),
-    restock: (id: number, packs = 1) => restock.mutate([id, { packs }]),
+    restock: (id: number, packs = 1, price?: number, purchased_on?: string) =>
+      restock.mutate([id, { packs, price, purchased_on }]),
     setStock: (id: number, packs: number) => setStock.mutate([id, packs]),
+  };
+}
+
+/** Kaufhistorie eines einzelnen Artikels - Liste plus Nachtragen/Löschen. */
+export function usePurchases(supplyId: number | null) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["purchases", supplyId],
+    queryFn: () => api.purchases(supplyId as number),
+    enabled: supplyId !== null,
+  });
+
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["purchases", supplyId] });
+    queryClient.invalidateQueries({ queryKey: ["supplies"] });
+    queryClient.invalidateQueries({ queryKey: ["shopping-list"] });
+    queryClient.invalidateQueries({ queryKey: ["summary"] });
+  };
+
+  const add = useMutation({
+    mutationFn: (body: { purchased_on: string; packs?: number; price?: number; note?: string }) =>
+      api.addPurchase(supplyId as number, body),
+    onSuccess: invalidateAll,
+  });
+  const remove = useMutation({
+    mutationFn: (purchaseId: number) => api.deletePurchase(supplyId as number, purchaseId),
+    onSuccess: invalidateAll,
+  });
+
+  return {
+    purchases: query.data ?? ([] as Purchase[]),
+    isLoading: query.isLoading,
+    add: (body: { purchased_on: string; packs?: number; price?: number; note?: string }) =>
+      add.mutate(body),
+    remove: (purchaseId: number) => remove.mutate(purchaseId),
   };
 }
 

@@ -54,11 +54,19 @@ export const api = {
   createSupply: (body: Partial<Supply>) => post<Supply>("/supplies", body),
   updateSupply: (id: number, body: Partial<Supply>) => patch<Supply>(`/supplies/${id}`, body),
   deleteSupply: (id: number) => remove(`/supplies/${id}`),
-  restock: (id: number, body?: { packs?: number; price?: number; note?: string }) =>
-    post<Supply>(`/supplies/${id}/restock`, body ?? { packs: 1 }),
+  restock: (
+    id: number,
+    body?: { packs?: number; price?: number; note?: string; purchased_on?: string },
+  ) => post<Supply>(`/supplies/${id}/restock`, body ?? { packs: 1 }),
   setStock: (id: number, stock_packs: number) =>
     post<Supply>(`/supplies/${id}/stock`, { stock_packs }),
   purchases: (id: number) => request<Purchase[]>(`/supplies/${id}/purchases`),
+  addPurchase: (
+    id: number,
+    body: { purchased_on: string; packs?: number; price?: number; note?: string },
+  ) => post<Purchase>(`/supplies/${id}/purchases`, body),
+  deletePurchase: (id: number, purchaseId: number) =>
+    remove(`/supplies/${id}/purchases/${purchaseId}`),
 
   supplyLists: () => request<SupplyList[]>("/supply-lists"),
   createSupplyList: (body: Partial<SupplyList>) => post<SupplyList>("/supply-lists", body),

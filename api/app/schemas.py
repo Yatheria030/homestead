@@ -239,15 +239,48 @@ class SupplyOut(ORMModel):
     sort_order: int
     supply_list: SupplyListOut | None = None
 
+    # Aus der Kaufhistorie vorberechnet (vom Router gesetzt, bevor validiert wird) -
+    # siehe routers/supplies.py::_purchase_stats
+    purchase_count: int = 0
+    avg_purchase_packs: float | None = None
+    derived_days_per_pack: float | None = None
+
     # --- abgeleitete Werte ---
+
+    @computed_field
+    @property
+    def rhythm_source(self) -> Literal["history", "manual", "unknown"]:
+        """Woher die Haltbarkeit kommt: gemessen, geschätzt, oder gar nicht bekannt."""
+        if self.purchase_count >= 2 and self.derived_days_per_pack:
+            return "history"
+        if self.days_per_pack:
+            return "manual"
+        return "unknown"
+
+    @computed_field
+    @property
+    def effective_days_per_pack(self) -> float | None:
+        """Beste bekannte Haltbarkeit: aus der Historie, sonst die grobe Schätzung."""
+        if self.purchase_count >= 2 and self.derived_days_per_pack:
+            return self.derived_days_per_pack
+        return self.days_per_pack
+
+    @computed_field
+    @property
+    def effective_packs_per_purchase(self) -> float:
+        """Übliche Kaufmenge: Ø aus der Historie, sonst die eingetragene Schätzung."""
+        if self.purchase_count >= 1 and self.avg_purchase_packs:
+            return self.avg_purchase_packs
+        return self.packs_per_purchase or 1
 
     @property
     def raw_stock(self) -> float:
         """Bestand von heute: Stichtagsbestand minus geschaetztem Verbrauch seither."""
-        if self.stock_as_of is None or not self.days_per_pack:
+        rate = self.effective_days_per_pack
+        if self.stock_as_of is None or not rate:
             return self.stock_packs
         elapsed = (date.today() - self.stock_as_of).days
-        return max(0.0, self.stock_packs - elapsed / self.days_per_pack)
+        return max(0.0, self.stock_packs - elapsed / rate)
 
     @computed_field
     @property
@@ -258,17 +291,19 @@ class SupplyOut(ORMModel):
     @property
     def days_left(self) -> int | None:
         """Reichweite in Tagen."""
-        if not self.days_per_pack:
+        rate = self.effective_days_per_pack
+        if not rate:
             return None
-        return int(self.raw_stock * self.days_per_pack)
+        return int(self.raw_stock * rate)
 
     @computed_field
     @property
     def purchase_interval_days(self) -> int | None:
         """Kaufrhythmus: Haltbarkeit einer Packung mal Kaufmenge."""
-        if not self.days_per_pack:
+        rate = self.effective_days_per_pack
+        if not rate:
             return None
-        return max(1, round(self.days_per_pack * (self.packs_per_purchase or 1)))
+        return max(1, round(rate * self.effective_packs_per_purchase))
 
     @computed_field
     @property
@@ -315,7 +350,7 @@ class SupplyOut(ORMModel):
         """Die übliche Kaufmenge - so viel, wie du sonst auch kaufst."""
         import math
 
-        return max(1, math.ceil(self.packs_per_purchase or 1))
+        return max(1, math.ceil(self.effective_packs_per_purchase))
 
     @computed_field
     @property
@@ -328,29 +363,32 @@ class SupplyOut(ORMModel):
     @property
     def monthly_cost(self) -> float | None:
         """Was der Artikel im Schnitt pro Monat kostet - ueber den Verbrauch gerechnet."""
-        if self.price is None or not self.days_per_pack:
+        rate = self.effective_days_per_pack
+        if self.price is None or not rate:
             return None
-        return money(self.price / self.days_per_pack * DAYS_PER_MONTH)
+        return money(self.price / rate * DAYS_PER_MONTH)
 
     @computed_field
     @property
     def yearly_cost(self) -> float | None:
-        if self.price is None or not self.days_per_pack:
+        rate = self.effective_days_per_pack
+        if self.price is None or not rate:
             return None
-        return money(self.price / self.days_per_pack * 365)
+        return money(self.price / rate * 365)
 
     @computed_field
     @property
     def yearly_savings(self) -> float | None:
         """Ersparnis pro Jahr gegenueber dem Normalpreis (z. B. durch Spar-Abo)."""
+        rate = self.effective_days_per_pack
         if (
             self.price is None
             or self.regular_price is None
-            or not self.days_per_pack
+            or not rate
             or self.regular_price <= self.price
         ):
             return None
-        return money((self.regular_price - self.price) / self.days_per_pack * 365)
+        return money((self.regular_price - self.price) / rate * 365)
 
     @computed_field
     @property
@@ -366,36 +404,38 @@ class SupplyOut(ORMModel):
     @computed_field
     @property
     def subscription_coverage(self) -> float | None:
-        """1.0 = das Abo liefert genau so viel, wie verbraucht wird."""
-        if (
-            not self.is_subscription
-            or not self.subscription_interval_days
-            or not self.days_per_pack
-        ):
+        """1.0 = das Abo liefert genau so viel, wie tatsächlich verbraucht wird."""
+        rate = self.effective_days_per_pack
+        if not self.is_subscription or not self.subscription_interval_days or not rate:
             return None
         delivered_per_day = self.subscription_packs / self.subscription_interval_days
-        used_per_day = 1 / self.days_per_pack
+        used_per_day = 1 / rate
         return round(delivered_per_day / used_per_day, 2)
 
 
 class RestockIn(BaseModel):
-    """Kauf verbuchen: Packungen wandern in den Bestand."""
+    """Kauf verbuchen: Packungen wandern in den Bestand und in die Kaufhistorie."""
 
-    packs: float = 1
-    price: float | None = None
+    packs: float = Field(default=1, gt=0)
+    price: float | None = Field(default=None, ge=0)
     purchased_on: date | None = None
     note: str | None = None
 
 
 class StockIn(BaseModel):
-    """Bestand korrigieren - ab heute rechnet die App wieder selbst weiter."""
+    """Bestand korrigieren - ab dem Stichtag rechnet die App wieder selbst weiter."""
 
-    stock_packs: float
+    stock_packs: float = Field(ge=0)
     as_of: date | None = None
 
 
 class PurchaseIn(BaseModel):
-    purchased_on: date | None = None
+    """Kauf nachtragen - auch rückwirkend. Fließt in die Rhythmus-Berechnung ein,
+    lässt den aktuellen Bestand aber unangetastet (dafür gibt es StockIn/RestockIn)."""
+
+    purchased_on: date
+    packs: float = Field(default=1, gt=0)
+    price: float | None = Field(default=None, ge=0)
     note: str | None = None
 
 

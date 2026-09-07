@@ -59,10 +59,15 @@ toward the total*, for items that run directly between the two of you.
 **Pockets** — a breakdown per pot: how much, what it consists of, what share of the total
 it is. "Copy plan" puts the transfer list on your clipboard.
 
-**Supplies** — consumables by rhythm rather than by memory. Two inputs are enough: **how
-long one pack lasts** and **how many you buy per run**. From that comes the rhythm
-("3 packs every ~5 weeks") and the next buying date. Buying in bulk simply means raising
-the quantity and watching the rhythm stretch. Lists (Cat, Bathroom, Kitchen …) organise it
+**Supplies** — consumables by rhythm rather than by memory, and the rhythm is
+**measured, not guessed**: log when you bought something (including past purchases,
+backfilled) and how much, and Homestead works out how long a pack actually lasts you from
+the span between purchases. The "bought it" button does this automatically; a small form
+in the item lets you backfill history or correct today's quantity. Only for a brand-new
+item, before any purchases are logged, does a rough manual estimate fill the gap. Combined
+with the amount you currently have on hand, that tells you the buying rhythm ("3 packs
+every ~5 weeks") and the next buying date. Buying in bulk simply means logging bigger
+purchases and watching the rhythm stretch. Lists (Cat, Bathroom, Kitchen …) organise it
 like a task app.
 
 **Shopping list** — everything that has reached its buying date, grouped by vendor, with
@@ -143,16 +148,22 @@ The API documents itself at `/api/docs`. The interface is currently German only.
 
 **Supplies**
 
-* **Rhythm** = how long one pack lasts × how many you buy per run. A bag of litter lasts
+* **Measured rate**: with two or more purchases logged, how long a pack lasts is
+  computed as (days between the oldest and newest of the last 8 purchases) / (packs
+  bought in that span, excluding the newest — that one's still sitting in stock, at
+  least in part). Buying in bulk, buying early, buying late: all of it is real data,
+  averaged automatically. Only when fewer than two purchases exist does a manual
+  estimate fill the gap.
+* **Rhythm** = that rate × the average quantity per purchase. A bag of litter lasts
   3 weeks, you buy two: every 6 weeks.
 * **Next buying date** = last purchase + rhythm − lead time, where lead time is how many
   days ahead of running out you want to buy.
-* **Leftovers count**: if something was still in stock when you bought, the next date
-  shifts accordingly — so the plan survives buying early or late.
-* **Cost per month** = pack price / days per pack × 30.44.
-* **Subscription coverage** = delivered per day ÷ consumed per day. 100 % means the
-  subscription matches consumption exactly.
-* **Yearly saving** = (regular price − subscription price) × 365 / days per pack.
+* **Current stock** decays from whatever you last entered, using the measured rate — so
+  "how much is left" stays realistic between purchases too.
+* **Cost per month** = pack price / measured days per pack × 30.44.
+* **Subscription coverage** = delivered per day ÷ measured consumption per day. 100 %
+  means the subscription matches actual consumption exactly.
+* **Yearly saving** = (regular price − subscription price) × 365 / measured days per pack.
 
 ## Development
 
