@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Check,
   ChevronRight,
   ExternalLink,
   History,
@@ -14,6 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
+import { QuickBuyButton } from "../components/QuickBuyButton";
 import { SupplyDrawer } from "../components/SupplyDrawer";
 import { Button, Card, EmptyState } from "../components/ui";
 import {
@@ -69,7 +69,7 @@ function SupplyRow({
 }: {
   supply: Supply;
   onOpen: () => void;
-  onRestock: () => void;
+  onRestock: (packs: number) => void;
   onRename: (name: string) => void;
 }) {
   const status = SUPPLY_STATUS[supply.status];
@@ -208,13 +208,7 @@ function SupplyRow({
         className="flex shrink-0 items-center gap-1 justify-self-end"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          onClick={onRestock}
-          title={`${supply.suggested_packs}× ${supply.pack_label ?? "Packung"} als gekauft buchen – der Rhythmus startet neu`}
-          className="inline-flex h-7 items-center gap-1 rounded-md border border-line px-2 text-[12px] font-medium text-muted transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
-        >
-          <Check size={13} /> {supply.suggested_packs}× gekauft
-        </button>
+        <QuickBuyButton supply={supply} onBuy={onRestock} />
         <ChevronRight size={15} className="text-faint" />
       </div>
     </div>
@@ -520,9 +514,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   supply={supply}
                   onOpen={() => setOpenId(supply.id)}
                   onRename={(name) => actions.update(supply.id, { name })}
-                  onRestock={() =>
-                    actions.restock(supply.id, Math.max(1, supply.suggested_packs))
-                  }
+                  onRestock={(packs) => actions.restock(supply.id, packs)}
                 />
               ))}
             </Card>

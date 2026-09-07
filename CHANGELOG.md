@@ -3,6 +3,25 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] – 2026-09-07
+
+### Added
+
+* The "bought it" button now lets you type a different quantity right where you click
+  it — on the dashboard and in the supply list — instead of always logging the usual
+  amount. Click the number, type, confirm; no detour through the detail panel.
+* The rough estimate's "purchase quantity" field now shows a live cross-reference to
+  contents, e.g. "2 packs → 6 pieces at once", so it's clear the two numbers answer
+  different questions (what's in a pack vs. how many packs you buy) instead of looking
+  like the same thing asked twice.
+
+## [0.5.1] – 2026-09-07
+
+### Added
+
+* Rename a supply item right in the list — click the name, type, done. No detour
+  through the detail panel just to fix a typo.
+
 ## [0.5.0] – 2026-09-07
 
 ### Added
@@ -86,6 +105,8 @@ follows [Semantic Versioning](https://semver.org/).
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.6.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.0
+[0.5.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.5.1
 [0.5.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.5.0
 [0.4.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.4.0
 [0.3.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.3.0

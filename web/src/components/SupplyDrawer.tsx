@@ -6,6 +6,7 @@ import {
   SUPPLY_STATUS,
   dateLabel,
   euro,
+  num,
   rhythmLabel,
   unitPrice,
   untilPurchase,
@@ -189,7 +190,16 @@ export function SupplyDrawer({
                     onCommit={(days) => set({ days_per_pack: days })}
                   />
                 </Field>
-                <Field label="Kaufmenge" hint="Packungen je Einkauf">
+                <Field
+                  label="Kaufmenge"
+                  hint={
+                    supply.units_per_pack && supply.unit
+                      ? `Packungen je Einkauf → ${num(
+                          supply.packs_per_purchase * supply.units_per_pack,
+                        )} ${supply.unit} auf einmal`
+                      : "Packungen je Einkauf"
+                  }
+                >
                   <input
                     type="number"
                     step="1"

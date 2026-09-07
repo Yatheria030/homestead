@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Cell, Pie, PieChart, Tooltip } from "recharts";
-import { ArrowRight, Check, Package, RefreshCw, Users, Wallet } from "lucide-react";
+import { ArrowRight, Package, RefreshCw, Users, Wallet } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
+import { QuickBuyButton } from "../components/QuickBuyButton";
 import { Card, Chip, EmptyState, StatCard } from "../components/ui";
 import { SUPPLY_STATUS, colorOf, euro, everyLabel, untilPurchase } from "../lib/format";
 import { useSummary, useSupplies, useSupplyActions } from "../lib/hooks";
@@ -224,12 +225,7 @@ export function Dashboard({ onMenu }: { onMenu: () => void }) {
                 <span className="hidden w-40 shrink-0 text-right text-[12px] text-muted sm:block">
                   {untilPurchase(supply.days_until_purchase)}
                 </span>
-                <button
-                  onClick={() => restock(supply.id, supply.suggested_packs)}
-                  className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md border border-line px-2 text-[12px] font-medium text-muted transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
-                >
-                  <Check size={13} /> {supply.suggested_packs}× gekauft
-                </button>
+                <QuickBuyButton supply={supply} onBuy={(packs) => restock(supply.id, packs)} />
               </div>
             ))}
           </div>
