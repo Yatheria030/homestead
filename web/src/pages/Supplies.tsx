@@ -1,13 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight,
   ExternalLink,
   History,
   Inbox,
+  LayoutGrid,
   Package,
   Plus,
   RefreshCw,
   RotateCcw,
+  Rows3,
   ShoppingCart,
   Timer,
   Trash2,
@@ -16,6 +18,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Grid, Td, Th } from "../components/Grid";
 import { CheckCell, NumberCell, SelectCell, TextCell } from "../components/cells";
 import { QuickBuyButton } from "../components/QuickBuyButton";
+import { SupplyCardRow } from "../components/SupplyCardRow";
 import { SupplyDrawer } from "../components/SupplyDrawer";
 import { Button, Card, Chip, EmptyState } from "../components/ui";
 import {
@@ -24,6 +27,7 @@ import {
   dateLabel,
   euro,
   rhythmLabel,
+  unitPrice,
   untilPurchase,
 } from "../lib/format";
 import {
@@ -37,8 +41,31 @@ import {
 import type { Supply } from "../types";
 
 type Smart = "all" | "order" | "soon" | "subscription";
+type View = "grid" | "cards";
 
-const COLUMNS = 12;
+const COLUMNS = 14;
+const VIEW_KEY = "homestead-vorrat-view";
+
+/** Gewählte Ansicht merken - die Entscheidung ist Geschmackssache, nicht pro Besuch neu. */
+function useViewPreference() {
+  const [view, setView] = useState<View>(() => {
+    try {
+      return localStorage.getItem(VIEW_KEY) === "cards" ? "cards" : "grid";
+    } catch {
+      return "grid";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(VIEW_KEY, view);
+    } catch {
+      /* privater Modus o. Ä. - dann eben nur für diese Sitzung */
+    }
+  }, [view]);
+
+  return [view, setView] as const;
+}
 
 function TrashRow({
   supply,
@@ -98,6 +125,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
   const [openId, setOpenId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [newList, setNewList] = useState(false);
+  const [view, setView] = useViewPreference();
 
   const { data: supplies = [], isLoading } = useSupplies();
   const { data: lists = [] } = useSupplyLists();
@@ -219,12 +247,20 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
             {untilPurchase(supply.days_until_purchase)}
           </span>
         </Td>
+        <Td padded className="text-muted">
+          {supply.pack_label ?? <span className="text-faint">–</span>}
+        </Td>
         <Td>
           <NumberCell
             value={supply.price}
             money
             onCommit={(price) => actions.update(supply.id, { price })}
           />
+        </Td>
+        <Td padded className="text-right tabular-nums text-muted">
+          {unitPrice(supply.price_per_unit, supply.unit) ?? (
+            <span className="text-faint">–</span>
+          )}
         </Td>
         <Td>
           <CheckCell
@@ -284,6 +320,35 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
         onMenu={onMenu}
         search={search}
         onSearch={setSearch}
+        actions={
+          !showTrash && (
+            <div className="hidden items-center gap-0.5 rounded-lg border border-line bg-raised p-0.5 sm:flex">
+              {(
+                [
+                  ["grid", "Tabelle", Rows3],
+                  ["cards", "Karten", LayoutGrid],
+                ] as [View, string, typeof Rows3][]
+              ).map(([value, label, Icon]) => (
+                <button
+                  key={value}
+                  onClick={() => setView(value)}
+                  title={
+                    value === "cards"
+                      ? "Karten: mit Fortschrittsbalken und Preis je Einheit"
+                      : "Tabelle: alle Werte direkt bearbeitbar"
+                  }
+                  className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-medium transition ${
+                    view === value
+                      ? "bg-surface text-ink shadow-sm"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  <Icon size={13} /> {label}
+                </button>
+              ))}
+            </div>
+          )
+        }
       />
 
       <div className="grid gap-4 p-4 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -431,8 +496,27 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                 />
               ))}
             </Card>
+          ) : view === "cards" ? (
+            <Card padded={false}>
+              {isLoading && <EmptyState title="Lädt…" />}
+              {!isLoading && rows.length === 0 && (
+                <EmptyState
+                  title="Nichts in dieser Liste"
+                  hint="Oben hinzufügen oder einen anderen Filter wählen."
+                />
+              )}
+              {rows.map((supply) => (
+                <SupplyCardRow
+                  key={supply.id}
+                  supply={supply}
+                  onOpen={() => setOpenId(supply.id)}
+                  onRename={(name) => actions.update(supply.id, { name })}
+                  onRestock={(packs) => actions.restock(supply.id, packs)}
+                />
+              ))}
+            </Card>
           ) : (
-            <Grid minWidth={1440}>
+            <Grid minWidth={1660}>
               <thead>
                 <tr>
                   <Th width={40} align="center">
@@ -447,8 +531,12 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   </Th>
                   <Th width={170}>Rhythmus</Th>
                   <Th width={130}>Nächster Kauf</Th>
+                  <Th width={110}>Inhalt</Th>
                   <Th width={100} align="right">
                     Preis
+                  </Th>
+                  <Th width={110} align="right">
+                    je Einheit
                   </Th>
                   <Th width={60} align="center">
                     Abo
@@ -488,7 +576,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                     <td colSpan={2} className="px-2.5 py-2.5 text-[12px] text-muted">
                       pro Monat
                     </td>
-                    <td colSpan={5} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
+                    <td colSpan={7} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
                       {euro(monthly)}
                     </td>
                   </tr>
@@ -501,7 +589,9 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
             <Package size={13} />
             {showTrash
               ? "Ein Klick auf „Wiederherstellen“ bringt den Artikel samt Kaufhistorie zurück."
-              : "Zellen sind direkt anklickbar. Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge – „gekauft“ startet ihn neu."}
+              : view === "cards"
+                ? "Der Balken zeigt, wo im Kaufzyklus der Artikel gerade steht – der Strich markiert den Kauftermin. Zum Bearbeiten aller Werte oben auf „Tabelle“ wechseln."
+                : "Zellen sind direkt anklickbar. Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge – „gekauft“ startet ihn neu."}
           </div>
         </div>
       </div>

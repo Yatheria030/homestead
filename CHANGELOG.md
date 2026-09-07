@@ -3,6 +3,17 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] – 2026-09-07
+
+### Added
+
+* The card view is back — as a **switchable view** next to the grid, the way NocoDB
+  lets a table be looked at more than one way. Cards keep what the grid can't show:
+  the cycle progress bar with its buy-date marker, pack size and price per unit at a
+  glance. The choice is remembered.
+* The grid gained **contents** and **price per unit** columns, so switching views is
+  about how you want to read the data, not about which facts you get.
+
 ## [0.7.0] – 2026-09-07
 
 ### Changed
@@ -148,6 +159,7 @@ treatment.
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.0
 [0.6.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.3
 [0.6.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.2

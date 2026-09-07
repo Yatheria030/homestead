@@ -69,8 +69,9 @@ with the amount you currently have on hand, that tells you the buying rhythm ("3
 every ~5 weeks") and the next buying date. Buying in bulk simply means logging bigger
 purchases and watching the rhythm stretch. Lists (Cat, Bathroom, Kitchen …) organise it
 like a task app. Delete an item and it goes to a trash instead of vanishing — 30 days to
-bring it back, purchase history included, before it's gone for good. The list itself is a
-spreadsheet-style grid, same as Expenses — click any cell to edit it, stock included.
+bring it back, purchase history included, before it's gone for good. The list comes in two
+views you can switch between: a spreadsheet-style grid where every cell is editable,
+stock included, and a card view that adds a cycle progress bar and price per unit.
 
 **Shopping list** — everything that has reached its buying date, grouped by vendor, with
 quantity and total. Ticking an item books the purchase and restarts its rhythm.
@@ -88,7 +89,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Then open **http://localhost:8080** (change the port via `WEB_PORT` in `.env`). On first
+Then open **http://localhost:8099** (change the port via `WEB_PORT` in `.env`). On first
 start it seeds an example household so the UI isn't empty — replace those numbers with
 your own, or set `SEED_ON_START=false` to start blank.
 
