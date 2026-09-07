@@ -3,6 +3,15 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.2] – 2026-09-07
+
+### Changed
+
+* Reordered the supply detail panel: rhythm, lead time, current stock, contents/price/
+  vendor and subscription now come first — the things you'd actually glance at.
+  Purchase history and the rough fallback estimate moved to the bottom, next to the
+  note field — things you go there to correct, not to read.
+
 ## [0.6.1] – 2026-09-07
 
 ### Removed
@@ -114,6 +123,7 @@ follows [Semantic Versioning](https://semver.org/).
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.6.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.2
 [0.6.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.1
 [0.6.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.6.0
 [0.5.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.5.1

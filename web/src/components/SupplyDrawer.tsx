@@ -170,50 +170,6 @@ export function SupplyDrawer({
               </div>
             </div>
 
-            <div className="mt-4">
-              <PurchaseHistory supply={supply} />
-            </div>
-
-            <div className="mt-4 rounded-lg border border-line-soft p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-[12px] font-medium text-muted">Grobe Schätzung</span>
-                <span className="text-[11px] text-faint">
-                  {supply.rhythm_source === "history"
-                    ? "wird gerade nicht verwendet – genug Käufe vorhanden"
-                    : "wird verwendet, bis genug Käufe vorliegen"}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Eine Packung hält etwa">
-                  <DurationInput
-                    days={supply.days_per_pack}
-                    onCommit={(days) => set({ days_per_pack: days })}
-                  />
-                </Field>
-                <Field
-                  label="Kaufmenge"
-                  hint={
-                    supply.units_per_pack && supply.unit
-                      ? `Packungen je Einkauf → ${num(
-                          supply.packs_per_purchase * supply.units_per_pack,
-                        )} ${supply.unit} auf einmal`
-                      : "Packungen je Einkauf"
-                  }
-                >
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    defaultValue={supply.packs_per_purchase}
-                    onBlur={(event) =>
-                      set({ packs_per_purchase: Number(event.target.value || 1) })
-                    }
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-            </div>
-
             <div className="mt-3 grid grid-cols-2 gap-3">
               <Field label="Vorlauf" hint="so viele Tage vor dem Leerstand kaufen">
                 <input
@@ -384,6 +340,50 @@ export function SupplyDrawer({
                 {supply.subscription_coverage > 1.15 && " – es sammelt sich Vorrat an."}
               </p>
             )}
+          </section>
+
+          <section>
+            <PurchaseHistory supply={supply} />
+
+            <div className="mt-4 rounded-lg border border-line-soft p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[12px] font-medium text-muted">Grobe Schätzung</span>
+                <span className="text-[11px] text-faint">
+                  {supply.rhythm_source === "history"
+                    ? "wird gerade nicht verwendet – genug Käufe vorhanden"
+                    : "wird verwendet, bis genug Käufe vorliegen"}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Eine Packung hält etwa">
+                  <DurationInput
+                    days={supply.days_per_pack}
+                    onCommit={(days) => set({ days_per_pack: days })}
+                  />
+                </Field>
+                <Field
+                  label="Kaufmenge"
+                  hint={
+                    supply.units_per_pack && supply.unit
+                      ? `Packungen je Einkauf → ${num(
+                          supply.packs_per_purchase * supply.units_per_pack,
+                        )} ${supply.unit} auf einmal`
+                      : "Packungen je Einkauf"
+                  }
+                >
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    defaultValue={supply.packs_per_purchase}
+                    onBlur={(event) =>
+                      set({ packs_per_purchase: Number(event.target.value || 1) })
+                    }
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </div>
           </section>
 
           <section>
