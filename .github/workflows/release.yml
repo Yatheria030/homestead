@@ -17,6 +17,8 @@ concurrency:
 jobs:
   release:
     name: GitHub Release anlegen
+    # Nur bei Tag-Push; ein workflow_dispatch-Lauf soll nur das Image bauen
+    if: startsWith(github.ref_name, 'v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
