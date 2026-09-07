@@ -3,6 +3,22 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.4] – 2026-09-07
+
+### Fixed
+
+* The supplies grid scrolled sideways again after the purchase-link button was added
+  to the action column: the declared column widths only ever acted as a minimum, so
+  the table grew past them. The grid now uses a fixed table layout, which makes the
+  widths binding, and the columns were re-cut to the widths actually measured —
+  930 px of table in 930 px of space. The Expenses grid keeps its old behaviour.
+
+### Changed
+
+* Release workflow builds images one at a time. Two tags pushed minutes apart both
+  wrote to the same Actions cache and deadlocked; one run hung in the build step
+  until it was cancelled.
+
 ## [0.7.3] – 2026-09-07
 
 ### Added
@@ -179,6 +195,8 @@ treatment.
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.4]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.4
+[0.7.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.3
 [0.7.2]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.2
 [0.7.1]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.0

@@ -2,13 +2,29 @@ import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { Chip } from "./ui";
 
-export function Grid({ children, minWidth = 1180 }: { children: ReactNode; minWidth?: number }) {
+export function Grid({
+  children,
+  minWidth = 1180,
+  fixed = false,
+}: {
+  children: ReactNode;
+  minWidth?: number;
+  /**
+   * Spaltenbreiten verbindlich machen statt nur als Mindestmaß: ohne das wächst
+   * die Tabelle über die angegebenen Breiten hinaus, sobald ein Zellinhalt länger
+   * ist - und scrollt dann quer, obwohl die Summe der Breiten gepasst hätte.
+   */
+  fixed?: boolean;
+}) {
   return (
     <div
       className="overflow-x-auto rounded-xl border border-line bg-surface"
       style={{ boxShadow: "var(--shadow-card)" }}
     >
-      <table className="w-full border-collapse text-[13px]" style={{ minWidth }}>
+      <table
+        className={`w-full border-collapse text-[13px] ${fixed ? "table-fixed" : ""}`}
+        style={{ minWidth }}
+      >
         {children}
       </table>
     </div>

@@ -474,26 +474,26 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               ))}
             </Card>
           ) : (
-            <Grid minWidth={900}>
+            <Grid minWidth={900} fixed>
               <thead>
                 <tr>
                   <Th width={36} align="center">
                     <span title="Status">•</span>
                   </Th>
                   <Th width={150}>Artikel</Th>
-                  <Th width={80} align="right">
+                  <Th width={70} align="right">
                     Bestand
                   </Th>
-                  <Th width={130}>Rhythmus</Th>
+                  <Th width={160}>Rhythmus</Th>
                   <Th width={105}>Nächster Kauf</Th>
-                  <Th width={90} align="right">
+                  <Th width={85} align="right">
                     Preis
                   </Th>
-                  <Th width={56} align="center">
+                  <Th width={50} align="center">
                     Abo
                   </Th>
-                  <Th width={95}>Anbieter</Th>
-                  <Th width={130} align="right">
+                  <Th width={85}>Anbieter</Th>
+                  <Th width={177} align="right">
                     Aktion
                   </Th>
                 </tr>
