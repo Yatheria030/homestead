@@ -3,6 +3,23 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] – 2026-09-07
+
+### Added
+
+* Deleting a supply item now moves it to a **trash** instead of removing it outright.
+  Restorable for 30 days (purchase history included), then automatically purged in the
+  background; a permanent-delete option is available immediately if you're sure.
+
+### Changed
+
+* "Pack size" and "contents" no longer ask for the same thing twice: contents (amount +
+  unit) drives the maths, and the pack label is now optional, auto-filled from contents
+  unless you give it its own wording (useful for multi-packs like "2x 250 ml").
+* The dashboard's subscription savings and monthly supply cost now use the measured
+  purchase-history rate too, instead of only the manual fallback — they were silently
+  bypassing it before.
+
 ## [0.4.0] – 2026-09-07
 
 ### Changed
@@ -69,6 +86,7 @@ follows [Semantic Versioning](https://semver.org/).
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.5.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.5.0
 [0.4.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.4.0
 [0.3.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Yatheria030/homestead/releases/tag/v0.2.0

@@ -6,16 +6,18 @@ Menge, die in dieser Zeit tatsächlich verbraucht wurde (alles bis auf den jüng
 Kauf - der liegt ja noch ganz oder teilweise im Bestand). Erst wenn weniger als
 zwei Käufe vorliegen, greift die von Hand eingetragene grobe Schätzung.
 """
+import asyncio
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from ..db import get_db
+from ..db import SessionLocal, get_db
 from ..models import Purchase, Supply, SupplyList
 from ..schemas import (
+    TRASH_RETENTION_DAYS,
     PurchaseIn,
     PurchaseOut,
     RestockIn,
@@ -29,65 +31,11 @@ from ..schemas import (
     SupplyPatch,
     money,
 )
+from ..supply_stats import enrich_many as _enrich_many
+from ..supply_stats import enrich_one as _enrich_one
 from .crud import apply_patch, get_or_404
 
 router = APIRouter(tags=["vorrat"])
-
-# So viele der juengsten Kaeufe fliessen in die Rhythmus-Schaetzung ein. Begrenzt
-# das "Gedaechtnis" der Schaetzung, damit sich geaenderte Gewohnheiten (groessere
-# Packung, zweite Katze, ...) nach und nach durchsetzen statt von einer langen
-# Historie ausgebremst zu werden.
-RATE_WINDOW = 8
-
-
-def _purchase_stats(purchases: list[Purchase]) -> tuple[int, float | None, float | None]:
-    """(Gesamtzahl Käufe, Ø Menge je Kauf, gemessene Tage je Packung)."""
-    if not purchases:
-        return 0, None, None
-
-    ordered = sorted(purchases, key=lambda p: p.purchased_on)
-    total_count = len(ordered)
-    window = ordered[-(RATE_WINDOW + 1) :]
-    avg_packs = sum(p.packs for p in window) / len(window)
-
-    if len(window) < 2:
-        return total_count, avg_packs, None
-
-    span_days = (window[-1].purchased_on - window[0].purchased_on).days
-    # Alles ausser dem juengsten Kauf wurde in der Zwischenzeit nachweislich
-    # verbraucht - der juengste Kauf liegt ja noch (teilweise) im Bestand.
-    packs_consumed = sum(p.packs for p in window[:-1])
-    if span_days <= 0 or packs_consumed <= 0:
-        return total_count, avg_packs, None
-
-    return total_count, avg_packs, span_days / packs_consumed
-
-
-def _enrich_one(db: Session, supply: Supply) -> Supply:
-    """Haengt die aus der Kaufhistorie berechneten Werte transient an - vor jeder
-    Rueckgabe als SupplyOut aufrufen, sonst fehlen rhythm_source & co."""
-    purchases = db.scalars(select(Purchase).where(Purchase.supply_id == supply.id)).all()
-    count, avg_packs, derived = _purchase_stats(purchases)
-    supply.purchase_count = count
-    supply.avg_purchase_packs = avg_packs
-    supply.derived_days_per_pack = derived
-    return supply
-
-
-def _enrich_many(db: Session, supplies: list[Supply]) -> list[Supply]:
-    if not supplies:
-        return supplies
-    ids = [s.id for s in supplies]
-    rows = db.scalars(select(Purchase).where(Purchase.supply_id.in_(ids))).all()
-    grouped: dict[int, list[Purchase]] = defaultdict(list)
-    for row in rows:
-        grouped[row.supply_id].append(row)
-    for supply in supplies:
-        count, avg_packs, derived = _purchase_stats(grouped.get(supply.id, []))
-        supply.purchase_count = count
-        supply.avg_purchase_packs = avg_packs
-        supply.derived_days_per_pack = derived
-    return supplies
 
 
 def _sync_last_purchased(db: Session, supply_id: int) -> None:
@@ -99,6 +47,33 @@ def _sync_last_purchased(db: Session, supply_id: int) -> None:
     supply.last_purchased = db.scalar(
         select(func.max(Purchase.purchased_on)).where(Purchase.supply_id == supply_id)
     )
+
+
+def _get_live(db: Session, supply_id: int) -> Supply:
+    """Wie get_or_404, verweigert aber Artikel, die im Papierkorb liegen."""
+    obj = get_or_404(db, Supply, supply_id)
+    if obj.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="Artikel liegt im Papierkorb")
+    return obj
+
+
+async def purge_old_trash_loop() -> None:
+    """Raeumt im Hintergrund den Papierkorb auf - alle 6 Stunden geprueft, damit
+    ein Neustart der App nicht sofort alles endgueltig entfernt, was gerade erst
+    die Frist erreicht hat."""
+    while True:
+        try:
+            with SessionLocal() as db:
+                cutoff = datetime.utcnow() - timedelta(days=TRASH_RETENTION_DAYS)
+                due = db.scalars(select(Supply).where(Supply.deleted_at < cutoff)).all()
+                for item in due:
+                    db.delete(item)
+                if due:
+                    db.commit()
+                    print(f"Papierkorb aufgeräumt: {len(due)} Artikel endgültig entfernt")
+        except Exception as error:  # der Scheduler darf die App nie mitreissen
+            print(f"Papierkorb-Aufräumen fehlgeschlagen: {error}")
+        await asyncio.sleep(6 * 3600)
 
 
 # --- Listen -------------------------------------------------------------
@@ -136,8 +111,12 @@ def delete_list(list_id: int, db: Session = Depends(get_db)):
 # --- Artikel ------------------------------------------------------------
 
 def _query(db: Session, include_inactive: bool = True):
+    """Immer ohne Papierkorb-Artikel - dafuer gibt es list_trash()."""
     stmt = (
-        select(Supply).options(selectinload(Supply.supply_list)).order_by(Supply.sort_order, Supply.id)
+        select(Supply)
+        .options(selectinload(Supply.supply_list))
+        .where(Supply.deleted_at.is_(None))
+        .order_by(Supply.sort_order, Supply.id)
     )
     if not include_inactive:
         stmt = stmt.where(Supply.active.is_(True))
@@ -165,7 +144,7 @@ def create_supply(payload: SupplyIn, db: Session = Depends(get_db)):
 
 @router.patch("/supplies/{supply_id}", response_model=SupplyOut)
 def update_supply(supply_id: int, payload: SupplyPatch, db: Session = Depends(get_db)):
-    obj = get_or_404(db, Supply, supply_id)
+    obj = _get_live(db, supply_id)
     data = payload.model_dump(exclude_unset=True)
     # Bestand von Hand gesetzt: Stichtag mitziehen, sonst rechnet die App falsch weiter
     if "stock_packs" in data and "stock_as_of" not in data:
@@ -178,6 +157,41 @@ def update_supply(supply_id: int, payload: SupplyPatch, db: Session = Depends(ge
 
 @router.delete("/supplies/{supply_id}", status_code=204)
 def delete_supply(supply_id: int, db: Session = Depends(get_db)):
+    """In den Papierkorb verschieben, nicht sofort endgültig löschen - inklusive
+    der Kaufhistorie, die sonst mitgerissen würde. Nach 30 Tagen räumt die App
+    von selbst auf, siehe purge_old_trash_loop()."""
+    obj = get_or_404(db, Supply, supply_id)
+    if obj.deleted_at is not None:
+        raise HTTPException(status_code=400, detail="Artikel liegt bereits im Papierkorb")
+    obj.deleted_at = datetime.utcnow()
+    db.commit()
+
+
+@router.get("/supplies/trash", response_model=list[SupplyOut])
+def list_trash(db: Session = Depends(get_db)):
+    stmt = (
+        select(Supply)
+        .options(selectinload(Supply.supply_list))
+        .where(Supply.deleted_at.is_not(None))
+        .order_by(Supply.deleted_at.desc())
+    )
+    return _enrich_many(db, db.scalars(stmt).all())
+
+
+@router.post("/supplies/{supply_id}/restore", response_model=SupplyOut)
+def restore_supply(supply_id: int, db: Session = Depends(get_db)):
+    obj = get_or_404(db, Supply, supply_id)
+    if obj.deleted_at is None:
+        raise HTTPException(status_code=400, detail="Artikel liegt nicht im Papierkorb")
+    obj.deleted_at = None
+    db.commit()
+    db.refresh(obj)
+    return _enrich_one(db, obj)
+
+
+@router.delete("/supplies/{supply_id}/purge", status_code=204)
+def purge_supply(supply_id: int, db: Session = Depends(get_db)):
+    """Endgültig löschen, sofort - nicht rückgängig zu machen."""
     db.delete(get_or_404(db, Supply, supply_id))
     db.commit()
 
@@ -186,7 +200,7 @@ def delete_supply(supply_id: int, db: Session = Depends(get_db)):
 def restock(supply_id: int, payload: RestockIn | None = None, db: Session = Depends(get_db)):
     """'Gekauft'-Knopf: Packungen kommen auf den Bestand obendrauf UND in die
     Kaufhistorie - das ist der Unterschied zu einem reinen Historieneintrag."""
-    obj = get_or_404(db, Supply, supply_id)
+    obj = _get_live(db, supply_id)
     data = payload or RestockIn()
     when = data.purchased_on or date.today()
     if when > date.today():
@@ -250,7 +264,7 @@ def add_purchase(supply_id: int, payload: PurchaseIn, db: Session = Depends(get_
     Rhythmus-Schätzung, lässt den aktuellen Bestand aber unangetastet. Für einen
     Kauf gerade eben ist der 'Gekauft'-Knopf (restock) der richtige Weg: der
     bucht zusätzlich auf den Bestand."""
-    get_or_404(db, Supply, supply_id)
+    _get_live(db, supply_id)
     if payload.purchased_on > date.today():
         raise HTTPException(status_code=400, detail="Kaufdatum darf nicht in der Zukunft liegen")
 
@@ -303,7 +317,7 @@ def shopping_list(db: Session = Depends(get_db)):
                 status=row.status,
                 days_left=row.days_left,
                 packs=packs,
-                pack_label=row.pack_size,
+                pack_label=row.pack_label,
                 price=row.price,
                 total=money(row.price * packs) if row.price is not None else None,
                 is_subscription=row.is_subscription,

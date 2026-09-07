@@ -73,8 +73,12 @@ export interface Supply {
   note: string | null;
   active: boolean;
   sort_order: number;
+  deleted_at: string | null;
   supply_list: SupplyList | null;
   /* berechnet */
+  pack_label: string | null;
+  is_trashed: boolean;
+  purge_on: string | null;
   stock_now: number;
   days_left: number | null;
   runs_out_on: string | null;

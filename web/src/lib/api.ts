@@ -68,6 +68,10 @@ export const api = {
   deletePurchase: (id: number, purchaseId: number) =>
     remove(`/supplies/${id}/purchases/${purchaseId}`),
 
+  trash: () => request<Supply[]>("/supplies/trash"),
+  restoreSupply: (id: number) => post<Supply>(`/supplies/${id}/restore`),
+  purgeSupply: (id: number) => remove(`/supplies/${id}/purge`),
+
   supplyLists: () => request<SupplyList[]>("/supply-lists"),
   createSupplyList: (body: Partial<SupplyList>) => post<SupplyList>("/supply-lists", body),
   updateSupplyList: (id: number, body: Partial<SupplyList>) =>

@@ -23,6 +23,7 @@ NEW_COLUMNS: dict[str, dict[str, str]] = {
         "regular_price": "NUMERIC",
         "subscription_packs": "NUMERIC DEFAULT 1",
         "next_delivery": "DATE",
+        "deleted_at": "DATETIME",
     },
     "purchases": {
         "packs": "NUMERIC DEFAULT 1",

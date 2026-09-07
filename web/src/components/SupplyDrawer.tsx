@@ -239,15 +239,7 @@ export function SupplyDrawer({
               Menge, Preis &amp; Bezugsquelle
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Packung">
-                <input
-                  defaultValue={supply.pack_size ?? ""}
-                  onBlur={(event) => set({ pack_size: event.target.value || null })}
-                  className={inputClass}
-                  placeholder="z. B. 2x 10 l"
-                />
-              </Field>
-              <Field label="Inhalt">
+              <Field label="Inhalt" hint="steuert Preis pro Einheit & Kaufmenge">
                 <div className="flex gap-1.5">
                   <input
                     type="number"
@@ -267,6 +259,14 @@ export function SupplyDrawer({
                     placeholder="l"
                   />
                 </div>
+              </Field>
+              <Field label="Eigene Beschriftung" hint="optional – sonst aus dem Inhalt gebildet">
+                <input
+                  defaultValue={supply.pack_size ?? ""}
+                  onBlur={(event) => set({ pack_size: event.target.value || null })}
+                  className={inputClass}
+                  placeholder={supply.pack_label ?? "z. B. 2x 250 ml"}
+                />
               </Field>
               <Field label="Preis pro Packung">
                 <input
@@ -413,12 +413,13 @@ export function SupplyDrawer({
         <div className="flex items-center justify-between gap-2 border-t border-line px-4 py-3">
           <Button
             variant="danger"
+            title="Wandert in den Papierkorb, 30 Tage lang wiederherstellbar"
             onClick={() => {
               actions.remove(supply.id);
               onClose();
             }}
           >
-            <Trash2 size={14} /> Löschen
+            <Trash2 size={14} /> In den Papierkorb
           </Button>
           <Button
             variant="primary"

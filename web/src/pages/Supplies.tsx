@@ -8,12 +8,14 @@ import {
   Package,
   Plus,
   RefreshCw,
+  RotateCcw,
   ShoppingCart,
   Timer,
+  Trash2,
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { SupplyDrawer } from "../components/SupplyDrawer";
-import { Card, EmptyState } from "../components/ui";
+import { Button, Card, EmptyState } from "../components/ui";
 import {
   SUPPLY_STATUS,
   colorOf,
@@ -28,6 +30,8 @@ import {
   useSupplyActions,
   useSupplyListActions,
   useSupplyLists,
+  useTrash,
+  useTrashActions,
 } from "../lib/hooks";
 import type { Supply } from "../types";
 
@@ -70,7 +74,7 @@ function SupplyRow({
   const perUnit = unitPrice(supply.price_per_unit, supply.unit);
   // Menge für den Preis: "24x 85 g für 18,49 € (0,77 € / Dose)"
   const priceLine = [
-    supply.pack_size,
+    supply.pack_label,
     supply.price !== null ? `${euro(supply.price)}${perUnit ? ` · ${perUnit}` : ""}` : null,
   ]
     .filter(Boolean)
@@ -163,7 +167,7 @@ function SupplyRow({
       >
         <button
           onClick={onRestock}
-          title={`${supply.suggested_packs}× ${supply.pack_size ?? "Packung"} als gekauft buchen – der Rhythmus startet neu`}
+          title={`${supply.suggested_packs}× ${supply.pack_label ?? "Packung"} als gekauft buchen – der Rhythmus startet neu`}
           className="inline-flex h-7 items-center gap-1 rounded-md border border-line px-2 text-[12px] font-medium text-muted transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
         >
           <Check size={13} /> {supply.suggested_packs}× gekauft
@@ -174,18 +178,71 @@ function SupplyRow({
   );
 }
 
+function TrashRow({
+  supply,
+  onRestore,
+  onPurge,
+}: {
+  supply: Supply;
+  onRestore: () => void;
+  onPurge: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <div className="flex items-center gap-3 border-b border-line-soft px-4 py-3 last:border-0">
+      <Trash2 size={15} className="shrink-0 text-faint" />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[14px] font-medium">{supply.name}</div>
+        <div className="truncate text-[12px] text-muted">
+          Gelöscht am {dateLabel(supply.deleted_at)} · wird am {dateLabel(supply.purge_on)}{" "}
+          endgültig entfernt
+        </div>
+      </div>
+      {confirming ? (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="text-[12px] text-muted">Endgültig löschen?</span>
+          <Button onClick={() => setConfirming(false)}>Abbrechen</Button>
+          <Button variant="danger" onClick={onPurge}>
+            Ja, löschen
+          </Button>
+        </div>
+      ) : (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            onClick={onRestore}
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-line px-2 text-[12px] font-medium text-muted transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+          >
+            <RotateCcw size={13} /> Wiederherstellen
+          </button>
+          <button
+            onClick={() => setConfirming(true)}
+            title="Endgültig löschen"
+            className="grid size-7 place-items-center rounded-md text-faint transition hover:bg-rose-500/10 hover:text-rose-500"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Supplies({ onMenu }: { onMenu: () => void }) {
   const [search, setSearch] = useState("");
   const [smart, setSmart] = useState<Smart>("all");
   const [listId, setListId] = useState<number | null>(null);
+  const [showTrash, setShowTrash] = useState(false);
   const [openId, setOpenId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [newList, setNewList] = useState(false);
 
   const { data: supplies = [], isLoading } = useSupplies();
   const { data: lists = [] } = useSupplyLists();
+  const { data: trash = [] } = useTrash();
   const actions = useSupplyActions();
   const listActions = useSupplyListActions();
+  const trashActions = useTrashActions();
 
   const counts = useMemo(
     () => ({
@@ -267,9 +324,10 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   onClick={() => {
                     setSmart(item.key);
                     setListId(null);
+                    setShowTrash(false);
                   }}
                   className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition ${
-                    smart === item.key && listId === null
+                    smart === item.key && listId === null && !showTrash
                       ? "bg-brand-soft text-brand"
                       : "text-muted hover:bg-line-soft hover:text-ink"
                   }`}
@@ -293,9 +351,10 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                     onClick={() => {
                       setListId(list.id);
                       setSmart("all");
+                      setShowTrash(false);
                     }}
                     className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition ${
-                      listId === list.id
+                      listId === list.id && !showTrash
                         ? "bg-brand-soft text-brand"
                         : "text-muted hover:bg-line-soft hover:text-ink"
                     }`}
@@ -341,56 +400,95 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                 </button>
               )}
             </div>
+
+            <div className="border-t border-line p-1.5">
+              <button
+                onClick={() => setShowTrash(true)}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition ${
+                  showTrash
+                    ? "bg-brand-soft text-brand"
+                    : "text-muted hover:bg-line-soft hover:text-ink"
+                }`}
+              >
+                <Trash2 size={15} />
+                <span className="flex-1 text-left">Papierkorb</span>
+                {trash.length > 0 && (
+                  <span className="tabular-nums text-faint">{trash.length}</span>
+                )}
+              </button>
+            </div>
           </Card>
         </div>
 
         <div className="min-w-0 space-y-3">
           {/* Schnellerfassung wie in einer Aufgabenliste */}
-          <Card padded={false}>
-            <div className="flex items-center gap-2 px-3 py-2.5">
-              <Plus size={16} className="shrink-0 text-faint" />
-              <input
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => event.key === "Enter" && addSupply()}
-                placeholder="Artikel hinzufügen – z. B. Katzenstreu"
-                className="h-7 flex-1 bg-transparent text-[14px] outline-none placeholder:text-faint"
-              />
-              {draft && (
-                <button
-                  onClick={addSupply}
-                  className="rounded-md bg-brand px-2.5 py-1 text-[12px] font-medium text-white"
-                >
-                  Anlegen
-                </button>
-              )}
-            </div>
-          </Card>
+          {!showTrash && (
+            <Card padded={false}>
+              <div className="flex items-center gap-2 px-3 py-2.5">
+                <Plus size={16} className="shrink-0 text-faint" />
+                <input
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={(event) => event.key === "Enter" && addSupply()}
+                  placeholder="Artikel hinzufügen – z. B. Katzenstreu"
+                  className="h-7 flex-1 bg-transparent text-[14px] outline-none placeholder:text-faint"
+                />
+                {draft && (
+                  <button
+                    onClick={addSupply}
+                    className="rounded-md bg-brand px-2.5 py-1 text-[12px] font-medium text-white"
+                  >
+                    Anlegen
+                  </button>
+                )}
+              </div>
+            </Card>
+          )}
 
-          <Card padded={false}>
-            {isLoading && <EmptyState title="Lädt…" />}
-            {!isLoading && rows.length === 0 && (
-              <EmptyState
-                title="Nichts in dieser Liste"
-                hint="Oben hinzufügen oder einen anderen Filter wählen."
-              />
-            )}
-            {rows.map((supply) => (
-              <SupplyRow
-                key={supply.id}
-                supply={supply}
-                onOpen={() => setOpenId(supply.id)}
-                onRestock={() =>
-                  actions.restock(supply.id, Math.max(1, supply.suggested_packs))
-                }
-              />
-            ))}
-          </Card>
+          {showTrash ? (
+            <Card padded={false}>
+              {trash.length === 0 && (
+                <EmptyState
+                  title="Papierkorb ist leer"
+                  hint="Gelöschte Artikel bleiben 30 Tage hier, bevor sie endgültig entfernt werden."
+                />
+              )}
+              {trash.map((supply) => (
+                <TrashRow
+                  key={supply.id}
+                  supply={supply}
+                  onRestore={() => trashActions.restore(supply.id)}
+                  onPurge={() => trashActions.purge(supply.id)}
+                />
+              ))}
+            </Card>
+          ) : (
+            <Card padded={false}>
+              {isLoading && <EmptyState title="Lädt…" />}
+              {!isLoading && rows.length === 0 && (
+                <EmptyState
+                  title="Nichts in dieser Liste"
+                  hint="Oben hinzufügen oder einen anderen Filter wählen."
+                />
+              )}
+              {rows.map((supply) => (
+                <SupplyRow
+                  key={supply.id}
+                  supply={supply}
+                  onOpen={() => setOpenId(supply.id)}
+                  onRestock={() =>
+                    actions.restock(supply.id, Math.max(1, supply.suggested_packs))
+                  }
+                />
+              ))}
+            </Card>
+          )}
 
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-faint">
             <Package size={13} />
-            Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge. „Gekauft" startet ihn
-            neu – Reste aus dem letzten Einkauf werden dabei mitgerechnet.
+            {showTrash
+              ? "Ein Klick auf „Wiederherstellen“ bringt den Artikel samt Kaufhistorie zurück."
+              : "Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge. „Gekauft“ startet ihn neu – Reste aus dem letzten Einkauf werden dabei mitgerechnet."}
           </div>
         </div>
       </div>

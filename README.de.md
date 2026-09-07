@@ -65,7 +65,8 @@ einem ganz neuen Artikel, bevor Käufe vorliegen, füllt eine grobe Schätzung d
 Zusammen mit dem Bestand, den du gerade hast, ergibt das den Kaufrhythmus („2 Packungen
 alle 6 Wochen“) und den nächsten Kauftermin. Wer auf Masse kauft, trägt einfach größere
 Käufe ein und sieht, wie weit der Rhythmus dadurch auseinanderrückt. Listen (Katze, Bad,
-Küche …) sortieren das Ganze wie in einer Aufgaben-App.
+Küche …) sortieren das Ganze wie in einer Aufgaben-App. Löschen landet im Papierkorb statt
+im Nichts – 30 Tage lang wiederherstellbar, samt Kaufhistorie, bevor es endgültig weg ist.
 
 **Einkaufsliste** – alles, was seinen Kauftermin erreicht hat, gebündelt nach Anbieter,
 mit Menge und Summe. Abhaken bucht den Kauf und startet den Rhythmus neu.

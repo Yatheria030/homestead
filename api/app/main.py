@@ -11,9 +11,10 @@ from .db import Base, SessionLocal, engine
 from . import backup
 from .migrate import migrate
 from .routers import backups, expenses, master, summary, supplies
+from .routers.supplies import purge_old_trash_loop
 from .seed import seed
 
-app = FastAPI(title="Homestead", version="0.4.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
+app = FastAPI(title="Homestead", version="0.5.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 # Nur fuer die lokale Entwicklung (Vite auf :5173); im Container laeuft alles same-origin.
 app.add_middleware(
@@ -49,8 +50,9 @@ def on_startup() -> None:
         with SessionLocal() as db:
             if seed(db):
                 print("Startdaten angelegt.")
-    # Automatische Snapshots im Hintergrund
+    # Automatische Snapshots und Papierkorb-Aufräumen im Hintergrund
     asyncio.create_task(backup.scheduler())
+    asyncio.create_task(purge_old_trash_loop())
 
 
 # Gebautes Frontend ausliefern (im Container unter /srv/static)

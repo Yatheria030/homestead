@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal
 
@@ -137,6 +137,9 @@ class ExpenseOut(ORMModel):
 # --- Vorrat -------------------------------------------------------------
 
 DAYS_PER_MONTH = 365 / 12
+# So lange bleibt ein geloeschter Artikel im Papierkorb, bevor er automatisch
+# endgueltig entfernt wird.
+TRASH_RETENTION_DAYS = 30
 
 
 class SupplyListIn(BaseModel):
@@ -237,6 +240,7 @@ class SupplyOut(ORMModel):
     note: str | None
     active: bool
     sort_order: int
+    deleted_at: datetime | None = None
     supply_list: SupplyListOut | None = None
 
     # Aus der Kaufhistorie vorberechnet (vom Router gesetzt, bevor validiert wird) -
@@ -246,6 +250,35 @@ class SupplyOut(ORMModel):
     derived_days_per_pack: float | None = None
 
     # --- abgeleitete Werte ---
+
+    @computed_field
+    @property
+    def pack_label(self) -> str | None:
+        """Anzeige-Label der Packung: die eingetragene Bezeichnung, sonst aus
+        Menge + Einheit gebildet - 'Packung' und 'Inhalt' müssen nicht doppelt
+        gepflegt werden, nur wenn eine eigene Beschriftung (z. B. '2x 250 ml')
+        mehr sagt als die reine Zahl."""
+        if self.pack_size:
+            return self.pack_size
+        if self.units_per_pack and self.unit:
+            trimmed = f"{self.units_per_pack:g}"
+            return f"{trimmed} {self.unit}"
+        return None
+
+    @computed_field
+    @property
+    def is_trashed(self) -> bool:
+        return self.deleted_at is not None
+
+    @computed_field
+    @property
+    def purge_on(self) -> date | None:
+        """Ab wann ein Papierkorb-Eintrag automatisch endgültig gelöscht wird."""
+        from datetime import timedelta
+
+        if self.deleted_at is None:
+            return None
+        return self.deleted_at.date() + timedelta(days=TRASH_RETENTION_DAYS)
 
     @computed_field
     @property

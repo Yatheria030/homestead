@@ -15,6 +15,7 @@ from ..schemas import (
     SupplyOut,
     money,
 )
+from ..supply_stats import enrich_many
 
 router = APIRouter(tags=["auswertung"])
 
@@ -73,10 +74,10 @@ def get_summary(db: Session = Depends(get_db)):
         for (name, color), amount in sorted(by_category.items(), key=lambda kv: -kv[1])
     ]
 
-    supplies = [
-        SupplyOut.model_validate(s)
-        for s in db.scalars(select(Supply).where(Supply.active.is_(True))).all()
-    ]
+    live_supplies = db.scalars(
+        select(Supply).where(Supply.active.is_(True), Supply.deleted_at.is_(None))
+    ).all()
+    supplies = [SupplyOut.model_validate(s) for s in enrich_many(db, live_supplies)]
     sub_expenses = [r for r in rows if r.is_subscription]
     sub_supplies = [s for s in supplies if s.is_subscription]
     subscription_monthly = money(

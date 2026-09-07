@@ -144,6 +144,9 @@ class Supply(Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    # Papierkorb: gesetzt statt geloescht, damit ein Versehen rueckgaengig zu machen
+    # ist - inklusive der Kaufhistorie, die sonst mitgerissen wuerde.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     supply_list: Mapped[SupplyList | None] = relationship(back_populates="supplies")
     purchases: Mapped[list["Purchase"]] = relationship(

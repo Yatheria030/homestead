@@ -12,6 +12,7 @@ export const useSupplyLists = () =>
   useQuery({ queryKey: ["supply-lists"], queryFn: api.supplyLists });
 export const useShoppingList = () =>
   useQuery({ queryKey: ["shopping-list"], queryFn: api.shoppingList });
+export const useTrash = () => useQuery({ queryKey: ["trash"], queryFn: api.trash });
 export const useBackups = () => useQuery({ queryKey: ["backups"], queryFn: api.backups });
 
 /** Nach jeder Aenderung auch die Auswertung neu ziehen. */
@@ -58,7 +59,7 @@ export function useSupplyActions() {
   );
   const remove = useInvalidating(
     (id: number) => api.deleteSupply(id),
-    ["supplies", "shopping-list"],
+    ["supplies", "shopping-list", "trash"],
   );
   const restock = useInvalidating(
     (id: number, body?: { packs?: number; price?: number; purchased_on?: string }) =>
@@ -76,6 +77,19 @@ export function useSupplyActions() {
     restock: (id: number, packs = 1, price?: number, purchased_on?: string) =>
       restock.mutate([id, { packs, price, purchased_on }]),
     setStock: (id: number, packs: number) => setStock.mutate([id, packs]),
+  };
+}
+
+/** Papierkorb: wiederherstellen oder endgültig entfernen. */
+export function useTrashActions() {
+  const restore = useInvalidating(
+    (id: number) => api.restoreSupply(id),
+    ["supplies", "shopping-list", "trash"],
+  );
+  const purge = useInvalidating((id: number) => api.purgeSupply(id), ["trash"]);
+  return {
+    restore: (id: number) => restore.mutate([id]),
+    purge: (id: number) => purge.mutate([id]),
   };
 }
 
