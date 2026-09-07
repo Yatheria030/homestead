@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
+  Check,
   ChevronRight,
+  ClipboardList,
   ExternalLink,
   History,
   Inbox,
@@ -42,7 +44,7 @@ import {
 import type { Supply } from "../types";
 
 const COL_KEYS = ["status", "name", "list", "stock", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
-type Smart = "all" | "order" | "soon" | "subscription";
+type Smart = "all" | "order" | "check" | "soon" | "subscription";
 type View = "grid" | "cards";
 
 const COLUMNS = 10;
@@ -168,6 +170,50 @@ function TrashRow({
   );
 }
 
+/** Inline-Antwort auf die Nachzähl-Frage, direkt in der Tabellenzeile. */
+function RecountCell({
+  supply,
+  onRecount,
+}: {
+  supply: Supply;
+  onRecount: (packs: number) => void;
+}) {
+  const [draft, setDraft] = useState("");
+
+  const submit = () => {
+    const parsed = draft.trim() === "" ? NaN : Number(draft.replace(",", "."));
+    if (Number.isNaN(parsed) || parsed < 0) return;
+    onRecount(parsed);
+    setDraft("");
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="shrink-0 text-[11px] text-muted">noch da</span>
+      <input
+        type="number"
+        step="0.5"
+        min="0"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") submit();
+          if (event.key === "Escape") setDraft("");
+        }}
+        placeholder={String(supply.stock_now)}
+        className="h-7 w-12 rounded-[3px] border border-line bg-surface px-1.5 text-right text-[12px] tabular-nums outline-none focus:ring-2 focus:ring-brand"
+      />
+      <button
+        onClick={submit}
+        title="Bestand übernehmen"
+        className="grid size-6 shrink-0 place-items-center rounded-md text-sky-600 transition hover:bg-sky-500/10 dark:text-sky-400"
+      >
+        <Check size={13} />
+      </button>
+    </div>
+  );
+}
+
 export function Supplies({ onMenu }: { onMenu: () => void }) {
   const [search, setSearch] = useState("");
   const [smart, setSmart] = useState<Smart>("all");
@@ -192,6 +238,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
     () => ({
       all: supplies.length,
       order: supplies.filter((s) => s.status === "order" || s.status === "empty").length,
+      check: supplies.filter((s) => s.status === "check").length,
       soon: supplies.filter((s) => s.status === "soon").length,
       subscription: supplies.filter((s) => s.is_subscription).length,
     }),
@@ -200,11 +247,19 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
 
   const rows = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    const order: Record<string, number> = { empty: 0, order: 1, soon: 2, unknown: 3, ok: 4 };
+    const order: Record<string, number> = {
+      empty: 0,
+      order: 1,
+      check: 2,
+      soon: 3,
+      unknown: 4,
+      ok: 5,
+    };
     return supplies
       .filter((supply) => (listId === null ? true : supply.list_id === listId))
       .filter((supply) => {
         if (smart === "order") return supply.status === "order" || supply.status === "empty";
+        if (smart === "check") return supply.status === "check";
         if (smart === "soon") return supply.status === "soon";
         if (smart === "subscription") return supply.is_subscription;
         return true;
@@ -249,6 +304,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
   const smartItems: { key: Smart; label: string; icon: typeof Inbox; color: string }[] = [
     { key: "all", label: "Alles", icon: Inbox, color: "slate" },
     { key: "order", label: "Jetzt kaufen", icon: ShoppingCart, color: "orange" },
+    { key: "check", label: "Nachzählen", icon: ClipboardList, color: "sky" },
     { key: "soon", label: "Bald dran", icon: Timer, color: "amber" },
     { key: "subscription", label: "Im Abo", icon: RefreshCw, color: "teal" },
   ];
@@ -308,9 +364,19 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
           </div>
         </Td>
         <Td padded>
-          <span className="font-medium tabular-nums" style={{ color: colorOf(status.color) }}>
-            {untilPurchase(supply.days_until_purchase)}
-          </span>
+          {supply.status === "check" ? (
+            <RecountCell
+              supply={supply}
+              onRecount={(packs) => actions.recount(supply.id, packs)}
+            />
+          ) : (
+            <span
+              className="font-medium tabular-nums"
+              style={{ color: colorOf(status.color) }}
+            >
+              {untilPurchase(supply.days_until_purchase)}
+            </span>
+          )}
         </Td>
         <Td>
           <NumberCell
@@ -642,7 +708,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               ? "Ein Klick auf „Wiederherstellen“ bringt den Artikel samt Kaufhistorie zurück."
               : view === "cards"
                 ? "Der Balken zeigt, wo im Kaufzyklus der Artikel gerade steht – der Strich markiert den Kauftermin. Zum Bearbeiten aller Werte oben auf „Tabelle“ wechseln."
-                : "Zellen sind direkt anklickbar. Der Rhythmus ergibt sich aus Haltbarkeit mal Kaufmenge – „gekauft“ startet ihn neu."}
+                : "Zellen sind direkt anklickbar. Ist ein Frage-Intervall gesetzt, fragt die App zum Termin „noch da?“ statt blind auf „kaufen“ zu springen – reicht der Rest, wandert der Termin nach hinten."}
           </div>
         </div>
       </div>

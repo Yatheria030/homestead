@@ -109,6 +109,7 @@ export const SUPPLY_STATUS: Record<
 > = {
   empty: { label: "überfällig", color: "rose", short: "überfällig" },
   order: { label: "jetzt kaufen", color: "orange", short: "kaufen" },
+  check: { label: "nachzählen", color: "sky", short: "zählen" },
   soon: { label: "bald dran", color: "amber", short: "bald" },
   ok: { label: "im Plan", color: "emerald", short: "ok" },
   unknown: { label: "noch kein Rhythmus", color: "slate", short: "offen" },

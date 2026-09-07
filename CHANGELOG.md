@@ -7,6 +7,20 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.11] – 2026-09-07
+> tagline: Ask before you assume
+
+### Added
+
+* A "recount" checkpoint: set a target stock (Soll-Bestand) and a recheck interval
+  per supply via the drawer. When the date comes, the supply shows up in a new
+  "Nachzählen" status with an inline answer field in the table.
+* `POST /supplies/{id}/recount`: records the count, refines the usage rate from
+  the gap between two counts, and either pushes the date back or puts the item on
+  the shopping list up to the target stock.
+* Restocking and manual stock edits now clear an open "jetzt kaufen" from a
+  previous count.
+
 ## [0.7.10] – 2026-09-07
 > tagline: Give lists a face
 

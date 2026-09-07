@@ -123,6 +123,21 @@ class Supply(Base):
     buffer_days: Mapped[int] = mapped_column(Integer, default=14)
     target_cover_days: Mapped[int] = mapped_column(Integer, default=60)
 
+    # Nachzähl-Checkpoint: statt den Bestand blind auf null zu rechnen, fragt die
+    # App am next_check-Tag "wie viel ist noch da?". target_stock ist die Menge in
+    # Packungen, auf die dann aufgefuellt wird; recheck_days der Abstand zwischen
+    # zwei Nachfragen; measured_days_per_pack die Haltbarkeit aus zwei Zaehlungen;
+    # reorder_since merkt sich ein "jetzt kaufen" aus einer Zaehlung.
+    target_stock: Mapped[float | None] = mapped_column(
+        Numeric(10, 2, asdecimal=False), nullable=True
+    )
+    recheck_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    next_check: Mapped[date | None] = mapped_column(Date, nullable=True)
+    measured_days_per_pack: Mapped[float | None] = mapped_column(
+        Numeric(12, 3, asdecimal=False), nullable=True
+    )
+    reorder_since: Mapped[date | None] = mapped_column(Date, nullable=True)
+
     # Preise
     price: Mapped[float | None] = mapped_column(Numeric(12, 2, asdecimal=False), nullable=True)
     regular_price: Mapped[float | None] = mapped_column(

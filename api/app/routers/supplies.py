@@ -20,6 +20,7 @@ from ..schemas import (
     TRASH_RETENTION_DAYS,
     PurchaseIn,
     PurchaseOut,
+    RecountIn,
     RestockIn,
     ShoppingGroup,
     ShoppingItem,
@@ -150,6 +151,10 @@ def update_supply(supply_id: int, payload: SupplyPatch, db: Session = Depends(ge
     if "stock_packs" in data and "stock_as_of" not in data:
         data["stock_as_of"] = date.today()
     apply_patch(obj, data)
+    # Frage-Intervall neu gesetzt, aber noch nie ein Termin: vom Bestands-Stichtag
+    # aus rechnen, damit die Nachzähl-Frage überhaupt einmal fällig wird.
+    if data.get("recheck_days") and obj.next_check is None and obj.stock_as_of is not None:
+        obj.next_check = obj.stock_as_of + timedelta(days=obj.recheck_days)
     db.commit()
     db.refresh(obj)
     return _enrich_one(db, obj)
@@ -217,6 +222,13 @@ def restock(supply_id: int, payload: RestockIn | None = None, db: Session = Depe
     if obj.is_subscription and obj.subscription_interval_days:
         obj.next_delivery = when + timedelta(days=obj.subscription_interval_days)
 
+    # Frisch aufgefüllt: kein offenes "jetzt kaufen" mehr, und die Nachzähl-Frage
+    # rückt um das Frage-Intervall nach hinten (Vorschlag, bis der Bestand knapp wird).
+    obj.reorder_since = None
+    _enrich_one(db, obj)
+    horizon = obj.recheck_days or SupplyOut.model_validate(obj).suggested_recheck_days
+    obj.next_check = date.today() + timedelta(days=horizon) if horizon else None
+
     db.add(
         Purchase(
             supply_id=obj.id,
@@ -243,6 +255,52 @@ def set_stock(supply_id: int, payload: StockIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Stichtag darf nicht in der Zukunft liegen")
     obj.stock_packs = payload.stock_packs
     obj.stock_as_of = as_of
+    # Frisch nachgezählt: ein offenes "jetzt kaufen" aus einer früheren Zählung
+    # gilt nicht mehr - der Status ergibt sich wieder aus der Reichweite.
+    obj.reorder_since = None
+    db.commit()
+    db.refresh(obj)
+    return _enrich_one(db, obj)
+
+
+@router.post("/supplies/{supply_id}/recount", response_model=SupplyOut)
+def recount(supply_id: int, payload: RecountIn, db: Session = Depends(get_db)):
+    """Antwort auf 'wie viel ist noch da?': Bestand setzen, die Haltbarkeit aus dem
+    Abstand zur letzten Zählung nachschärfen und entscheiden - reicht der Rest noch
+    über die doppelte Vorlaufzeit, wandert der Termin nach hinten; sonst auf die
+    Einkaufsliste."""
+    obj = _get_live(db, supply_id)
+    counted = round(payload.stock_packs, 2)
+    today = date.today()
+
+    prev_packs = obj.stock_packs or 0
+    prev_as_of = obj.stock_as_of
+
+    # Haltbarkeit messen: am Stichtag bekannte Menge minus jetzt gezählte, geteilt
+    # durch die Tage dazwischen - nur wenn wirklich etwas verbraucht wurde.
+    if prev_as_of is not None:
+        elapsed = (today - prev_as_of).days
+        consumed = prev_packs - counted
+        if elapsed > 0 and consumed > 0.05:
+            obj.measured_days_per_pack = round(elapsed / consumed, 2)
+
+    obj.stock_packs = counted
+    obj.stock_as_of = today
+
+    _enrich_one(db, obj)
+    view = SupplyOut.model_validate(obj)
+    horizon = obj.recheck_days or view.suggested_recheck_days or 30
+    days_left = view.days_left
+
+    # Reicht der Rest noch über die doppelte Vorlaufzeit, wandert der Termin nach
+    # hinten; sonst auf die Einkaufsliste (bis zum Soll-Bestand auffüllen).
+    if days_left is None or days_left > 2 * obj.buffer_days:
+        obj.next_check = today + timedelta(days=horizon)
+        obj.reorder_since = None
+    else:
+        obj.next_check = None
+        obj.reorder_since = today
+
     db.commit()
     db.refresh(obj)
     return _enrich_one(db, obj)

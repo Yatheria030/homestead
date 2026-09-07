@@ -168,6 +168,12 @@ export function SupplyDrawer({
                 {untilPurchase(supply.days_until_purchase)}
                 {supply.runs_out_on && ` · leer am ${dateLabel(supply.runs_out_on)}`}
               </div>
+              {supply.next_check && (
+                <div className="mt-0.5 text-[12px] text-muted">
+                  Nächste Nachfrage „noch da?“: {dateLabel(supply.next_check)}
+                  {supply.check_due && " · jetzt fällig"}
+                </div>
+              )}
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-3">
@@ -196,6 +202,55 @@ export function SupplyDrawer({
                     Setzen
                   </Button>
                 </div>
+              </Field>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <Field
+                label="Soll-Bestand"
+                hint={
+                  supply.pack_label
+                    ? `Packungen – bis hierhin auffüllen (${supply.pack_label}/Pck.)`
+                    : "Packungen – so viel willst du im Schrank haben"
+                }
+              >
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  defaultValue={supply.target_stock ?? ""}
+                  onBlur={(event) =>
+                    set({
+                      target_stock: event.target.value ? Number(event.target.value) : null,
+                    })
+                  }
+                  className={inputClass}
+                />
+              </Field>
+              <Field
+                label="Nachfragen alle"
+                hint={
+                  supply.suggested_recheck_days
+                    ? `Tage nach dem Kauf (Vorschlag ${supply.suggested_recheck_days} – Rest ÷ Verbrauch − Vorlauf)`
+                    : "Tage nach dem Kauf – dann fragt die App „noch da?“"
+                }
+              >
+                <input
+                  type="number"
+                  min="1"
+                  placeholder={
+                    supply.suggested_recheck_days
+                      ? String(supply.suggested_recheck_days)
+                      : ""
+                  }
+                  defaultValue={supply.recheck_days ?? ""}
+                  onBlur={(event) =>
+                    set({
+                      recheck_days: event.target.value ? Number(event.target.value) : null,
+                    })
+                  }
+                  className={inputClass}
+                />
               </Field>
             </div>
           </section>

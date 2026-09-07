@@ -170,6 +170,9 @@ class SupplyIn(BaseModel):
     stock_as_of: date | None = None
     buffer_days: int = 14
     target_cover_days: int = 60
+    target_stock: float | None = None
+    recheck_days: int | None = None
+    next_check: date | None = None
     price: float | None = None
     regular_price: float | None = None
     is_subscription: bool = False
@@ -197,6 +200,9 @@ class SupplyPatch(BaseModel):
     stock_as_of: date | None = None
     buffer_days: int | None = None
     target_cover_days: int | None = None
+    target_stock: float | None = None
+    recheck_days: int | None = None
+    next_check: date | None = None
     price: float | None = None
     regular_price: float | None = None
     is_subscription: bool | None = None
@@ -211,7 +217,7 @@ class SupplyPatch(BaseModel):
     sort_order: int | None = None
 
 
-SupplyStatus = Literal["unknown", "empty", "order", "soon", "ok"]
+SupplyStatus = Literal["unknown", "empty", "order", "check", "soon", "ok"]
 
 
 class SupplyOut(ORMModel):
@@ -228,6 +234,11 @@ class SupplyOut(ORMModel):
     stock_as_of: date | None
     buffer_days: int
     target_cover_days: int
+    target_stock: float | None = None
+    recheck_days: int | None = None
+    next_check: date | None = None
+    measured_days_per_pack: float | None = None
+    reorder_since: date | None = None
     price: float | None
     regular_price: float | None
     is_subscription: bool
@@ -282,10 +293,13 @@ class SupplyOut(ORMModel):
 
     @computed_field
     @property
-    def rhythm_source(self) -> Literal["history", "manual", "unknown"]:
-        """Woher die Haltbarkeit kommt: gemessen, geschätzt, oder gar nicht bekannt."""
+    def rhythm_source(self) -> Literal["history", "counted", "manual", "unknown"]:
+        """Woher die Haltbarkeit kommt: aus der Kaufhistorie, aus zwei Nachzählungen,
+        von Hand geschätzt, oder gar nicht bekannt."""
         if self.purchase_count >= 2 and self.derived_days_per_pack:
             return "history"
+        if self.measured_days_per_pack:
+            return "counted"
         if self.days_per_pack:
             return "manual"
         return "unknown"
@@ -293,9 +307,12 @@ class SupplyOut(ORMModel):
     @computed_field
     @property
     def effective_days_per_pack(self) -> float | None:
-        """Beste bekannte Haltbarkeit: aus der Historie, sonst die grobe Schätzung."""
+        """Beste bekannte Haltbarkeit: gemessen aus der Kaufhistorie, sonst aus zwei
+        Nachzählungen, sonst die von Hand eingetragene grobe Schätzung."""
         if self.purchase_count >= 2 and self.derived_days_per_pack:
             return self.derived_days_per_pack
+        if self.measured_days_per_pack:
+            return self.measured_days_per_pack
         return self.days_per_pack
 
     @computed_field
@@ -365,7 +382,27 @@ class SupplyOut(ORMModel):
 
     @computed_field
     @property
+    def check_due(self) -> bool:
+        """Der Nachzähl-Termin ist erreicht - die App fragt jetzt, wie viel noch da ist."""
+        return self.next_check is not None and date.today() >= self.next_check
+
+    @computed_field
+    @property
+    def suggested_recheck_days(self) -> int | None:
+        """Vorschlag fürs Frage-Intervall: so lange warten, bis der Bestand auf die
+        doppelte Vorlaufzeit zusammengeschmolzen ist - dann lohnt das Nachzählen."""
+        left = self.days_left
+        if left is None:
+            return None
+        return max(1, left - 2 * self.buffer_days)
+
+    @computed_field
+    @property
     def status(self) -> SupplyStatus:
+        # Ein "jetzt kaufen" aus einer Nachzählung schlägt den blinden Countdown
+        if self.reorder_since is not None:
+            days = self.days_left
+            return "empty" if days is not None and days <= 0 else "order"
         days = self.days_left
         if days is None:
             return "unknown"
@@ -373,6 +410,8 @@ class SupplyOut(ORMModel):
             return "empty"
         if days <= self.buffer_days:
             return "order"
+        if self.check_due:
+            return "check"
         if days <= self.buffer_days * 2:
             return "soon"
         return "ok"
@@ -380,9 +419,11 @@ class SupplyOut(ORMModel):
     @computed_field
     @property
     def suggested_packs(self) -> int:
-        """Die übliche Kaufmenge - so viel, wie du sonst auch kaufst."""
+        """Kaufmenge: bis zum Soll-Bestand auffüllen, sonst die übliche Menge."""
         import math
 
+        if self.target_stock:
+            return max(1, math.ceil(self.target_stock - self.raw_stock))
         return max(1, math.ceil(self.effective_packs_per_purchase))
 
     @computed_field
@@ -460,6 +501,13 @@ class StockIn(BaseModel):
 
     stock_packs: float = Field(ge=0)
     as_of: date | None = None
+
+
+class RecountIn(BaseModel):
+    """Antwort auf die Nachzähl-Frage: so viel ist noch da. Die App entscheidet
+    dann, ob der Termin nach hinten wandert oder ob gekauft werden muss."""
+
+    stock_packs: float = Field(ge=0)
 
 
 class PurchaseIn(BaseModel):

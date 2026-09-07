@@ -60,6 +60,8 @@ export const api = {
   ) => post<Supply>(`/supplies/${id}/restock`, body ?? { packs: 1 }),
   setStock: (id: number, stock_packs: number) =>
     post<Supply>(`/supplies/${id}/stock`, { stock_packs }),
+  recount: (id: number, stock_packs: number) =>
+    post<Supply>(`/supplies/${id}/recount`, { stock_packs }),
   purchases: (id: number) => request<Purchase[]>(`/supplies/${id}/purchases`),
   addPurchase: (
     id: number,

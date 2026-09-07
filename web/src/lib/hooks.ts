@@ -72,6 +72,10 @@ export function useSupplyActions() {
     (id: number, packs: number) => api.setStock(id, packs),
     ["supplies", "shopping-list"],
   );
+  const recount = useInvalidating(
+    (id: number, packs: number) => api.recount(id, packs),
+    ["supplies", "shopping-list"],
+  );
   return {
     update: (id: number, body: Partial<Supply>) => update.mutate([id, body]),
     create: (body: Partial<Supply>) => create.mutate([body]),
@@ -79,6 +83,7 @@ export function useSupplyActions() {
     restock: (id: number, packs = 1, price?: number, purchased_on?: string) =>
       restock.mutate([id, { packs, price, purchased_on }]),
     setStock: (id: number, packs: number) => setStock.mutate([id, packs]),
+    recount: (id: number, packs: number) => recount.mutate([id, packs]),
   };
 }
 

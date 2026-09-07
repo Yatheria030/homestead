@@ -37,7 +37,7 @@ export interface Expense {
   monthly_share: number;
 }
 
-export type SupplyStatus = "unknown" | "empty" | "order" | "soon" | "ok";
+export type SupplyStatus = "unknown" | "empty" | "order" | "check" | "soon" | "ok";
 
 export interface SupplyList {
   id: number;
@@ -61,6 +61,11 @@ export interface Supply {
   stock_as_of: string | null;
   buffer_days: number;
   target_cover_days: number;
+  target_stock: number | null;
+  recheck_days: number | null;
+  next_check: string | null;
+  measured_days_per_pack: number | null;
+  reorder_since: string | null;
   price: number | null;
   regular_price: number | null;
   is_subscription: boolean;
@@ -89,10 +94,12 @@ export interface Supply {
   purchase_count: number;
   avg_purchase_packs: number | null;
   derived_days_per_pack: number | null;
-  rhythm_source: "history" | "manual" | "unknown";
+  rhythm_source: "history" | "counted" | "manual" | "unknown";
   effective_days_per_pack: number | null;
   effective_packs_per_purchase: number;
   status: SupplyStatus;
+  check_due: boolean;
+  suggested_recheck_days: number | null;
   suggested_packs: number;
   price_per_unit: number | null;
   monthly_cost: number | null;
