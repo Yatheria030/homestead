@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch: {}
 
 # Zwei gleichzeitig laufende Image-Builds schreiben in denselben
 # Actions-Cache (cache-to: type=gha) und blockieren sich gegenseitig - bei
@@ -92,8 +93,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # type=gha-Cache entfernt: bei nacheinander getagten Runs blockieren sich
+          # die Cache-Locks gegenseitig ("deadlock") und die Builds hängen ewig.
+          # Für Einweg-Tag-Builds ohne fortlaufende Dev-Iteration bringt der Cache
+          # kaum Mehrwert - der Build dauert max. ~4 Min ohne Cache.
           # Provenance-Attestation pusht ein zusaetzliches Referrer-Artefakt in die
           # Registry - das scheitert bei privaten GHCR-Paketen zuverlaessig mit
           # "denied: permission_denied: read_package", unabhaengig von den sonstigen
