@@ -41,11 +41,28 @@ import {
 } from "../lib/hooks";
 import type { Supply } from "../types";
 
+const COL_KEYS = ["status", "name", "list", "stock", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
 type Smart = "all" | "order" | "soon" | "subscription";
 type View = "grid" | "cards";
 
 const COLUMNS = 10;
 const VIEW_KEY = "homestead-vorrat-view";
+const WIDTHS_KEY = "homestead-vorrat-col-widths";
+const MIN_WIDTH = 48;
+/** Standardbreiten pro Spalte – bei Ziehen wird nur der eigene Wert gemerkt. */
+const DEFAULT_WIDTHS: Record<string, number> = {
+  status: 36,
+  name: 150,
+  list: 92,
+  stock: 70,
+  rhythm: 160,
+  next: 105,
+  price: 85,
+  subscription: 50,
+  vendor: 85,
+  action: 177,
+};
+
 
 /** Gewählte Ansicht merken - die Entscheidung ist Geschmackssache, nicht pro Besuch neu. */
 function useViewPreference() {
@@ -66,6 +83,39 @@ function useViewPreference() {
   }, [view]);
 
   return [view, setView] as const;
+}
+
+/**
+ * Spaltenbreiten merkt die Tabelle selbst, wie Excel: am Rand gezogen wird,
+ * der Wert bleibt für spätere Besuche erhalten. Standardbreite gilt, solange
+ * der Nutzer an einer Spalte nichts gezogen hat.
+ */
+function useColumnWidths(keys: string[]) {
+  const [widths, setWidths] = useState<Record<string, number>>(() => {
+    const base = Object.fromEntries(keys.map((key) => [key, DEFAULT_WIDTHS[key] ?? 100]));
+    try {
+      const stored = JSON.parse(localStorage.getItem(WIDTHS_KEY) ?? "{}") as Record<string, number>;
+      for (const key of keys) {
+        if (typeof stored[key] === "number" && stored[key] >= MIN_WIDTH) base[key] = stored[key];
+      }
+    } catch {
+      /* kein/einwandiger Speicher – dann Standardbreiten */
+    }
+    return base;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(WIDTHS_KEY, JSON.stringify(widths));
+    } catch {
+      /* privater Modus – Breite gilt dann nur für diese Sitzung */
+    }
+  }, [widths]);
+
+  const resize = (key: string) => (delta: number) =>
+    setWidths((current) => ({ ...current, [key]: Math.max(MIN_WIDTH, current[key] + delta) }));
+
+  return { widths, resize };
 }
 
 function TrashRow({
@@ -129,6 +179,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
   // Kopf „Liste" klicken: aufsteigend → absteigend → aus
   const [listSort, setListSort] = useState<null | "asc" | "desc">(null);
   const [view, setView] = useViewPreference();
+  const { widths, resize } = useColumnWidths([...COL_KEYS]);
 
   const { data: supplies = [], isLoading } = useSupplies();
   const { data: lists = [] } = useSupplyLists();
@@ -501,23 +552,24 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               ))}
             </Card>
           ) : (
-            <Grid minWidth={900} fixed>
+            <Grid
+              minWidth={Math.min(1100, Math.max(560, Object.values(widths).reduce((a, b) => a + b, 0)))}
+              fixed
+            >
               <thead>
                 <tr>
-                  <Th width={36} align="center">
+                  <Th width={widths.status} align="center" onResize={resize("status")}>
                     <span title="Status">•</span>
                   </Th>
-                  <Th width={150}>Artikel</Th>
-                  <Th width={92}>
+                  <Th width={widths.name} onResize={resize("name")}>Artikel</Th>
+                  <Th width={widths.list} onResize={resize("list")}>
                     <button
                       onClick={() =>
                         setListSort(listSort ? null : listSort === "asc" ? "desc" : "asc")
                       }
                       title="Nach Liste sortieren"
-                      className={`inline-flex items-center gap-1 ${
-                        listSort
-                          ? "normal-case tracking-normal text-brand"
-                          : "uppercase tracking-wider"
+                      className={`inline-flex items-center gap-1 uppercase tracking-wider ${
+                        listSort ? "text-brand" : ""
                       }`}
                     >
                       Liste
@@ -525,19 +577,19 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                       {listSort === "desc" && <ArrowDown size={11} />}
                     </button>
                   </Th>
-                  <Th width={70} align="right">
+                  <Th width={widths.stock} align="right" onResize={resize("stock")}>
                     Bestand
                   </Th>
-                  <Th width={160}>Rhythmus</Th>
-                  <Th width={105}>Nächster Kauf</Th>
-                  <Th width={85} align="right">
+                  <Th width={widths.rhythm} onResize={resize("rhythm")}>Rhythmus</Th>
+                  <Th width={widths.next} onResize={resize("next")}>Nächster Kauf</Th>
+                  <Th width={widths.price} align="right" onResize={resize("price")}>
                     Preis
                   </Th>
-                  <Th width={50} align="center">
+                  <Th width={widths.subscription} align="center" onResize={resize("subscription")}>
                     Abo
                   </Th>
-                  <Th width={85}>Anbieter</Th>
-                  <Th width={177} align="right">
+                  <Th width={widths.vendor} onResize={resize("vendor")}>Anbieter</Th>
+                  <Th width={widths.action} align="right" onResize={resize("action")}>
                     Aktion
                   </Th>
                 </tr>

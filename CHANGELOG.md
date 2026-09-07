@@ -3,6 +3,28 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.7] – 2026-09-07
+
+### Added
+
+* Subtle vertical separators between the table columns, so the header reads like one
+  grid instead of floating words.
+
+### Fixed
+
+* Sorting by the "Liste" header used to un-capitalise the word — the label flipped
+  between "L I S T E" and "Liste". It stays in the same shape, now; active sort is
+  only signalled by the color and the arrow.
+
+## [0.7.6] – 2026-09-07
+
+### Added
+
+* Excel-style **column resizing** in the supplies table: drag the vertical grip on
+  the right edge of a header to widen or narrow that column. The width is your own
+  memory — it's saved between visits (and survives the page being re-opened), and
+  any column you never touched keeps its default size.
+
 ## [0.7.5] – 2026-09-07
 
 ### Added
@@ -205,6 +227,8 @@ treatment.
 * Snapshot system via SQLite's online backup API.
 * Automatic schema migration for existing databases.
 
+[0.7.7]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.7
+[0.7.6]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.6
 [0.7.5]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.5
 [0.7.4]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.4
 [0.7.3]: https://github.com/Yatheria030/homestead/releases/tag/v0.7.3
