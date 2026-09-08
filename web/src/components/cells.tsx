@@ -246,9 +246,28 @@ export function DurationCell({
   );
 }
 
+/** Gängige Einheiten fürs Auswahlmenü; eigene bleiben über „Andere…“ möglich. */
+const PACK_UNITS = [
+  "Stück",
+  "Paar",
+  "g",
+  "kg",
+  "ml",
+  "l",
+  "Rolle",
+  "Blatt",
+  "Beutel",
+  "Portion",
+  "Waschladung",
+  "Tab",
+  "Kapsel",
+  "Meter",
+];
+const CUSTOM_UNIT = "__custom__";
+
 /**
- * Inhalt einer Packung als ein Feld: „500 g“, „1,5 l“, „12“. Zahl vorn,
- * Rest ist die Einheit - schreibt units_per_pack + unit zusammen zurück.
+ * Inhalt einer Packung: Menge als Zahl, Einheit aus einem Auswahlmenü
+ * (mit „Andere…“ für eigene). Schreibt units_per_pack + unit zusammen zurück.
  */
 export function PackContentCell({
   qty,
@@ -261,27 +280,30 @@ export function PackContentCell({
 }) {
   const format = (q: number | null, u: string | null) =>
     q != null && u ? `${q} ${u}` : q != null ? String(q) : (u ?? "");
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(() => format(qty, unit));
-  const ref = useRef<HTMLInputElement>(null);
+  const isKnown = (u: string | null) => !!u && PACK_UNITS.includes(u);
 
-  useEffect(() => setDraft(format(qty, unit)), [qty, unit]);
+  const [editing, setEditing] = useState(false);
+  const [qtyDraft, setQtyDraft] = useState(() => (qty == null ? "" : String(qty)));
+  const [unitDraft, setUnitDraft] = useState(unit ?? "");
+  const [custom, setCustom] = useState(() => !!unit && !isKnown(unit));
+  const qtyRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (editing) ref.current?.select();
+    setQtyDraft(qty == null ? "" : String(qty));
+    setUnitDraft(unit ?? "");
+    setCustom(!!unit && !isKnown(unit));
+  }, [qty, unit]);
+  useEffect(() => {
+    if (editing) qtyRef.current?.select();
   }, [editing]);
 
   const commit = (close: () => void) => {
     close();
-    const raw = draft.trim();
-    let nextQty: number | null = null;
-    let nextUnit: string | null = null;
-    if (raw) {
-      const m = raw.match(/^\s*([\d]+(?:[.,][\d]+)?)?\s*(.*?)\s*$/);
-      const numPart = m?.[1];
-      nextQty = numPart ? Number(numPart.replace(",", ".")) : null;
-      if (Number.isNaN(nextQty as number)) nextQty = null;
-      nextUnit = m?.[2] ? m[2] : null;
-    }
+    const parsedQty =
+      qtyDraft.trim() === "" ? null : Number(qtyDraft.replace(",", "."));
+    const nextQty =
+      parsedQty == null || Number.isNaN(parsedQty) ? null : parsedQty;
+    const nextUnit = unitDraft.trim() === "" ? null : unitDraft.trim();
     if (nextQty !== (qty ?? null) || nextUnit !== (unit ?? null)) {
       onCommit({ units_per_pack: nextQty, unit: nextUnit });
     }
@@ -301,22 +323,64 @@ export function PackContentCell({
       }
     >
       {(close) => (
-        <input
-          ref={ref}
-          className="cell-input h-full rounded-[3px] bg-surface px-2.5 text-right"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={() => commit(close)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") commit(close);
-            if (event.key === "Escape") {
-              setDraft(format(qty, unit));
-              close();
+        // Eigene Mindestbreite, sonst passt Zahl + Menü nicht in die Spalte.
+        // onBlur schließt nur, wenn der Fokus die Zelle ganz verlässt.
+        <div
+          className="flex h-full min-w-[184px] items-center gap-1 rounded-[3px] bg-surface px-1"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              commit(close);
             }
           }}
-          placeholder="z. B. 500 g"
-          autoFocus
-        />
+        >
+          <input
+            ref={qtyRef}
+            type="number"
+            step="0.01"
+            min="0"
+            className="h-full min-w-0 flex-1 bg-surface px-1 text-right tabular-nums outline-none"
+            value={qtyDraft}
+            onChange={(event) => setQtyDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") commit(close);
+              if (event.key === "Escape") close();
+            }}
+            autoFocus
+          />
+          {custom ? (
+            <input
+              className="h-full w-20 shrink-0 bg-surface px-1 outline-none"
+              value={unitDraft}
+              placeholder="Einheit"
+              onChange={(event) => setUnitDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") commit(close);
+                if (event.key === "Escape") close();
+              }}
+            />
+          ) : (
+            <select
+              className="h-full shrink-0 bg-surface text-[12px] outline-none"
+              value={unitDraft}
+              onChange={(event) => {
+                if (event.target.value === CUSTOM_UNIT) {
+                  setCustom(true);
+                  setUnitDraft("");
+                } else {
+                  setUnitDraft(event.target.value);
+                }
+              }}
+            >
+              <option value="">–</option>
+              {PACK_UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+              <option value={CUSTOM_UNIT}>Andere…</option>
+            </select>
+          )}
+        </div>
       )}
     </EditableShell>
   );

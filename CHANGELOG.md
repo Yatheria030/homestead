@@ -7,6 +7,16 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.18] – 2026-09-08
+> tagline: Pick the pack unit
+
+### Changed
+
+* The **Inhalt** cell now splits into a number field plus a unit dropdown
+  (Stück, g, kg, ml, l, Rolle, …) instead of one free-text field. „Andere…“
+  switches to a text field for units not in the list; existing custom units are
+  kept and shown that way automatically.
+
 ## [0.7.17] – 2026-09-08
 > tagline: Pack content in the table
 
