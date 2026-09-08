@@ -6,7 +6,6 @@ import {
   SUPPLY_STATUS,
   dateLabel,
   euro,
-  num,
   rhythmLabel,
   unitPrice,
   untilPurchase,
@@ -425,35 +424,12 @@ export function SupplyDrawer({
                     : "wird verwendet, bis genug Käufe vorliegen"}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Eine Packung hält etwa">
-                  <DurationInput
-                    days={supply.days_per_pack}
-                    onCommit={(days) => set({ days_per_pack: days })}
-                  />
-                </Field>
-                <Field
-                  label="Kaufmenge"
-                  hint={
-                    supply.units_per_pack && supply.unit
-                      ? `Packungen je Einkauf → ${num(
-                          supply.packs_per_purchase * supply.units_per_pack,
-                        )} ${supply.unit} auf einmal`
-                      : "Packungen je Einkauf"
-                  }
-                >
-                  <input
-                    type="number"
-                    step="1"
-                    min="1"
-                    defaultValue={supply.packs_per_purchase}
-                    onBlur={(event) =>
-                      set({ packs_per_purchase: Number(event.target.value || 1) })
-                    }
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
+              <Field label="Eine Packung hält etwa">
+                <DurationInput
+                  days={supply.days_per_pack}
+                  onCommit={(days) => set({ days_per_pack: days })}
+                />
+              </Field>
             </div>
           </section>
 

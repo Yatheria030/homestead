@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Check, Plus } from "lucide-react";
 import { Chip } from "./ui";
-import { PALETTE_NAMES, colorOf, euro } from "../lib/format";
+import { PALETTE_NAMES, colorOf, durationLabel, euro } from "../lib/format";
 
 /** Zellen-Grundgeruest: zeigt Text an und wird beim Klick zum Eingabefeld. */
 function EditableShell({
@@ -155,6 +155,87 @@ export function NumberCell({
           }}
           autoFocus
         />
+      )}
+    </EditableShell>
+  );
+}
+
+/**
+ * Dauer in der Tabelle: Wert in Tagen, aber eingegeben in Tagen/Wochen/Monaten –
+ * dieselbe Denkweise wie im Detail-Drawer, nur kompakt für die Zelle.
+ */
+export function DurationCell({
+  value,
+  onCommit,
+}: {
+  value: number | null;
+  onCommit: (value: number | null) => void;
+}) {
+  const guessUnit = (days: number | null) => {
+    if (!days) return 7;
+    if (days % 30 === 0) return 30;
+    if (days % 7 === 0) return 7;
+    return 1;
+  };
+  const [editing, setEditing] = useState(false);
+  const [unit, setUnit] = useState(() => guessUnit(value));
+  const [draft, setDraft] = useState(() => (value ? String(value / guessUnit(value)) : ""));
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const next = guessUnit(value);
+    setUnit(next);
+    setDraft(value ? String(value / next) : "");
+  }, [value]);
+  useEffect(() => {
+    if (editing) ref.current?.select();
+  }, [editing]);
+
+  const commit = (raw: string, factor: number, close: () => void) => {
+    close();
+    const parsed =
+      raw.trim() === "" ? null : Math.round(Number(raw.replace(",", ".")) * factor);
+    if (parsed !== value && !Number.isNaN(parsed as number)) onCommit(parsed);
+  };
+
+  return (
+    <EditableShell
+      editing={editing}
+      setEditing={setEditing}
+      align="right"
+      display={<span className="tabular-nums">{durationLabel(value)}</span>}
+    >
+      {(close) => (
+        <div className="flex h-full items-center gap-1 bg-surface px-1">
+          <input
+            ref={ref}
+            type="number"
+            step="0.5"
+            min="0"
+            className="h-full min-w-0 flex-1 rounded-[3px] bg-surface px-1 text-right tabular-nums outline-none"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={(event) => commit(event.target.value, unit, close)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") commit((event.target as HTMLInputElement).value, unit, close);
+              if (event.key === "Escape") close();
+            }}
+            autoFocus
+          />
+          <select
+            className="h-full shrink-0 rounded-[3px] bg-surface text-[12px] outline-none"
+            value={unit}
+            onChange={(event) => {
+              const factor = Number(event.target.value);
+              setUnit(factor);
+              commit(draft, factor, close);
+            }}
+          >
+            <option value={1}>Tg.</option>
+            <option value={7}>Wo.</option>
+            <option value={30}>Mon.</option>
+          </select>
+        </div>
       )}
     </EditableShell>
   );

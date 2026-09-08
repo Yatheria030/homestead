@@ -7,6 +7,27 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.12] – 2026-09-08
+> tagline: Shelf life at a glance
+
+### Added
+
+* The supplies table has a new **Haltbarkeit** column between *Bestand* and
+  *Rhythmus*: click to edit how long one pack lasts, entered in days / weeks /
+  months and stored in days — the same value as the drawer's rough estimate, so
+  it still gives way to the history-derived rate once enough purchases exist.
+
+### Changed
+
+* Renaming a supply list now goes through a patch schema instead of requiring
+  every field, and the emoji can be set straight from the article drawer.
+
+### Removed
+
+* The "Kaufmenge" (packs per purchase) field is gone from the drawer's rough
+  estimate box — it was redundant with the pack size and the history-derived
+  rhythm. Existing values keep working; the field just isn't editable anymore.
+
 ## [0.7.11] – 2026-09-07
 > tagline: Ask before you assume
 

@@ -61,6 +61,14 @@ export function untilPurchase(days: number | null | undefined) {
   return `in ${Math.round(days / 30.4)} Monaten`;
 }
 
+/** Kompakte Haltbarkeit für die Tabelle: „2 Mon.“, „3 Wo.“, „10 Tg.“ */
+export function durationLabel(days: number | null | undefined) {
+  if (days === null || days === undefined) return "–";
+  if (days > 0 && days % 30 === 0) return `${days / 30} Mon.`;
+  if (days > 0 && days % 7 === 0) return `${days / 7} Wo.`;
+  return `${days} Tg.`;
+}
+
 export function daysLabel(days: number | null | undefined) {
   if (days === null || days === undefined) return "–";
   if (days === 0) return "heute fällig";
