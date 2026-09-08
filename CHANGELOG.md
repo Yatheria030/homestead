@@ -7,6 +7,16 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.17] – 2026-09-08
+> tagline: Pack content in the table
+
+### Added
+
+* New **Inhalt** column in the supplies table: pack content as one field
+  (`500 g`, `1,5 l`, `12`) — number first, the rest is the unit. Writes
+  `units_per_pack` + `unit` together, same as the drawer's "Inhalt", and it's
+  what the per-unit price is based on.
+
 ## [0.7.16] – 2026-09-08
 > tagline: Lead time, not target stock
 

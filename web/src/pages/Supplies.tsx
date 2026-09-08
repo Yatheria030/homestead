@@ -20,7 +20,14 @@ import {
 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { Grid, Td, Th } from "../components/Grid";
-import { CheckCell, DurationCell, ListCell, NumberCell, TextCell } from "../components/cells";
+import {
+  CheckCell,
+  DurationCell,
+  ListCell,
+  NumberCell,
+  PackContentCell,
+  TextCell,
+} from "../components/cells";
 import { QuickBuyButton } from "../components/QuickBuyButton";
 import { SupplyCardRow } from "../components/SupplyCardRow";
 import { SupplyDrawer } from "../components/SupplyDrawer";
@@ -43,11 +50,11 @@ import {
 } from "../lib/hooks";
 import type { Supply } from "../types";
 
-const COL_KEYS = ["status", "name", "list", "stock", "vorlauf", "pack", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
+const COL_KEYS = ["status", "name", "list", "stock", "vorlauf", "pack", "rhythm", "next", "inhalt", "price", "subscription", "vendor", "action"] as const;
 type Smart = "all" | "order" | "check" | "soon" | "subscription";
 type View = "grid" | "cards";
 
-const COLUMNS = 12;
+const COLUMNS = 13;
 const VIEW_KEY = "homestead-vorrat-view";
 const WIDTHS_KEY = "homestead-vorrat-col-widths";
 const MIN_WIDTH = 48;
@@ -61,6 +68,7 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   pack: 116,
   rhythm: 160,
   next: 105,
+  inhalt: 82,
   price: 85,
   subscription: 50,
   vendor: 85,
@@ -395,6 +403,13 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
           )}
         </Td>
         <Td>
+          <PackContentCell
+            qty={supply.units_per_pack}
+            unit={supply.unit}
+            onCommit={(next) => actions.update(supply.id, next)}
+          />
+        </Td>
+        <Td>
           <NumberCell
             value={supply.price}
             money
@@ -681,6 +696,11 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   </Th>
                   <Th width={widths.rhythm} separator onResize={resize("rhythm")}>Rhythmus</Th>
                   <Th width={widths.next} separator onResize={resize("next")}>Nächster Kauf</Th>
+                  <Th width={widths.inhalt} separator align="right" onResize={resize("inhalt")}>
+                    <span title="Inhalt je Packung – Menge + Einheit, z. B. „500 g“; steuert den Preis pro Einheit">
+                      Inhalt
+                    </span>
+                  </Th>
                   <Th width={widths.price} separator align="right" onResize={resize("price")}>
                     Preis
                   </Th>
@@ -719,7 +739,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                     <td colSpan={8} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
                       Vorrat gesamt · pro Monat
                     </td>
-                    <td colSpan={4} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
+                    <td colSpan={5} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">
                       {euro(monthly)}
                     </td>
                   </tr>

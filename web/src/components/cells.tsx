@@ -246,6 +246,82 @@ export function DurationCell({
   );
 }
 
+/**
+ * Inhalt einer Packung als ein Feld: „500 g“, „1,5 l“, „12“. Zahl vorn,
+ * Rest ist die Einheit - schreibt units_per_pack + unit zusammen zurück.
+ */
+export function PackContentCell({
+  qty,
+  unit,
+  onCommit,
+}: {
+  qty: number | null;
+  unit: string | null;
+  onCommit: (next: { units_per_pack: number | null; unit: string | null }) => void;
+}) {
+  const format = (q: number | null, u: string | null) =>
+    q != null && u ? `${q} ${u}` : q != null ? String(q) : (u ?? "");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(() => format(qty, unit));
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setDraft(format(qty, unit)), [qty, unit]);
+  useEffect(() => {
+    if (editing) ref.current?.select();
+  }, [editing]);
+
+  const commit = (close: () => void) => {
+    close();
+    const raw = draft.trim();
+    let nextQty: number | null = null;
+    let nextUnit: string | null = null;
+    if (raw) {
+      const m = raw.match(/^\s*([\d]+(?:[.,][\d]+)?)?\s*(.*?)\s*$/);
+      const numPart = m?.[1];
+      nextQty = numPart ? Number(numPart.replace(",", ".")) : null;
+      if (Number.isNaN(nextQty as number)) nextQty = null;
+      nextUnit = m?.[2] ? m[2] : null;
+    }
+    if (nextQty !== (qty ?? null) || nextUnit !== (unit ?? null)) {
+      onCommit({ units_per_pack: nextQty, unit: nextUnit });
+    }
+  };
+
+  return (
+    <EditableShell
+      editing={editing}
+      setEditing={setEditing}
+      align="right"
+      display={
+        qty != null || unit ? (
+          <span className="tabular-nums">{format(qty, unit)}</span>
+        ) : (
+          <span className="text-faint">–</span>
+        )
+      }
+    >
+      {(close) => (
+        <input
+          ref={ref}
+          className="cell-input h-full rounded-[3px] bg-surface px-2.5 text-right"
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={() => commit(close)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") commit(close);
+            if (event.key === "Escape") {
+              setDraft(format(qty, unit));
+              close();
+            }
+          }}
+          placeholder="z. B. 500 g"
+          autoFocus
+        />
+      )}
+    </EditableShell>
+  );
+}
+
 export function SelectCell<T extends string | number>({
   value,
   options,
