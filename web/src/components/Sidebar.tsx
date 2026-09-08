@@ -121,6 +121,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             {theme === "dark" ? "Heller Modus" : "Dunkler Modus"}
           </button>
+          <div className="px-2.5 pt-1.5 text-[11px] tabular-nums text-faint">
+            v{__APP_VERSION__}
+          </div>
         </div>
       </aside>
     </>

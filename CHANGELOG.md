@@ -7,6 +7,21 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.13] – 2026-09-08
+> tagline: Tell me which version I'm running
+
+### Added
+
+* The sidebar footer now shows the running version (`v0.7.13`), injected from
+  `package.json` at build time — no API round-trip.
+
+### Changed
+
+* `docker-compose.yml` pulls the published image
+  (`ghcr.io/yatheria030/homestead`) by default; `build: .` stays as a local
+  fallback. Optional `HOMESTEAD_TAG` pins a specific release. Updating an
+  instance is now `docker compose pull && docker compose up -d`.
+
 ## [0.7.12] – 2026-09-08
 > tagline: Shelf life at a glance
 

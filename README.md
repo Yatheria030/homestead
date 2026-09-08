@@ -86,14 +86,18 @@ saves.
 git clone https://github.com/Yatheria030/homestead.git
 cd homestead
 cp .env.example .env
-docker compose up -d --build
+docker compose up -d
 ```
+
+This pulls the published image (`ghcr.io/yatheria030/homestead`, `linux/arm64`). On amd64
+or to run your own changes, build locally instead: `docker compose up -d --build`.
 
 Then open **http://localhost:8099** (change the port via `WEB_PORT` in `.env`). On first
 start it seeds an example household so the UI isn't empty — replace those numbers with
 your own, or set `SEED_ON_START=false` to start blank.
 
-Stop with `docker compose down`; your data stays.
+Update to a new release with `docker compose pull && docker compose up -d`. Stop with
+`docker compose down`; your data stays.
 
 ## Security
 

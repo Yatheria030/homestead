@@ -84,13 +84,17 @@ Spar-Abo den tatsächlichen Verbrauch deckt und was es gegenüber dem Normalprei
 git clone https://github.com/Yatheria030/homestead.git
 cd homestead
 cp .env.example .env
-docker compose up -d --build
+docker compose up -d
 ```
+
+Das zieht das veröffentlichte Image (`ghcr.io/yatheria030/homestead`, `linux/arm64`). Auf
+amd64 oder für eigene Änderungen stattdessen lokal bauen: `docker compose up -d --build`.
 
 Danach läuft die App auf **http://localhost:8099** (Port über `WEB_PORT` in der `.env`
 änderbar). Beim ersten Start werden die Positionen aus der Excel als Startdaten angelegt,
 dazu ein Beispiel-Vorrat – beides in der App frei änder- und löschbar.
 
+Auf eine neue Version aktualisieren mit `docker compose pull && docker compose up -d`.
 Stoppen mit `docker compose down`, die Daten bleiben erhalten.
 
 ## Sicherheit

@@ -1,5 +1,9 @@
 services:
   homestead:
+    # Updates kommen aus der Registry: `docker compose pull && docker compose up -d`.
+    # `build: .` bleibt als Fallback, falls jemand lokal aus dem Quellcode bauen will
+    # (`docker compose build`); ohne vorhandenes Image baut `up` dann von selbst.
+    image: ghcr.io/yatheria030/homestead:${HOMESTEAD_TAG:-latest}
     build: .
     container_name: homestead
     restart: unless-stopped
