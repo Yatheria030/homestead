@@ -206,34 +206,39 @@ export function DurationCell({
       display={<span className="tabular-nums">{durationLabel(value)}</span>}
     >
       {(close) => (
-        <div className="flex h-full items-center gap-1 bg-surface px-1">
+        // Eigene Breite statt der schmalen Zelle, sonst ist das Einheiten-Menü
+        // nicht bedienbar. onBlur nur schließen, wenn der Fokus die Zelle ganz
+        // verlässt – ein Klick vom Feld ins Menü darf nicht abbrechen.
+        <div
+          className="flex h-full min-w-[152px] items-center gap-1 rounded-[3px] bg-surface px-1"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              commit(draft, unit, close);
+            }
+          }}
+        >
           <input
             ref={ref}
             type="number"
             step="0.5"
             min="0"
-            className="h-full min-w-0 flex-1 rounded-[3px] bg-surface px-1 text-right tabular-nums outline-none"
+            className="h-full min-w-0 flex-1 bg-surface px-1 text-right tabular-nums outline-none"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            onBlur={(event) => commit(event.target.value, unit, close)}
             onKeyDown={(event) => {
-              if (event.key === "Enter") commit((event.target as HTMLInputElement).value, unit, close);
+              if (event.key === "Enter") commit(draft, unit, close);
               if (event.key === "Escape") close();
             }}
             autoFocus
           />
           <select
-            className="h-full shrink-0 rounded-[3px] bg-surface text-[12px] outline-none"
+            className="h-full shrink-0 bg-surface text-[12px] outline-none"
             value={unit}
-            onChange={(event) => {
-              const factor = Number(event.target.value);
-              setUnit(factor);
-              commit(draft, factor, close);
-            }}
+            onChange={(event) => setUnit(Number(event.target.value))}
           >
-            <option value={1}>Tg.</option>
-            <option value={7}>Wo.</option>
-            <option value={30}>Mon.</option>
+            <option value={1}>Tage</option>
+            <option value={7}>Wochen</option>
+            <option value={30}>Monate</option>
           </select>
         </div>
       )}

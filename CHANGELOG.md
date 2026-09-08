@@ -7,6 +7,17 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.14] – 2026-09-08
+> tagline: Pick the unit that fits
+
+### Fixed
+
+* The **Haltbarkeit** cell's unit dropdown (Tage / Wochen / Monate) was
+  unreachable: clicking it blurred the number field, which closed the editor
+  before the pick registered. The editor now only closes when focus leaves the
+  cell entirely, so switching units works. The dropdown also spells the units
+  out and the editor gets enough width to be usable in a narrow column.
+
 ## [0.7.13] – 2026-09-08
 > tagline: Tell me which version I'm running
 

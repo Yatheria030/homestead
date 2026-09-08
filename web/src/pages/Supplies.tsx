@@ -57,7 +57,7 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   name: 150,
   list: 92,
   stock: 70,
-  pack: 96,
+  pack: 116,
   rhythm: 160,
   next: 105,
   price: 85,
