@@ -43,7 +43,7 @@ import {
 } from "../lib/hooks";
 import type { Supply } from "../types";
 
-const COL_KEYS = ["status", "name", "list", "stock", "soll", "pack", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
+const COL_KEYS = ["status", "name", "list", "stock", "vorlauf", "pack", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
 type Smart = "all" | "order" | "check" | "soon" | "subscription";
 type View = "grid" | "cards";
 
@@ -57,7 +57,7 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   name: 150,
   list: 92,
   stock: 70,
-  soll: 60,
+  vorlauf: 74,
   pack: 116,
   rhythm: 160,
   next: 105,
@@ -357,9 +357,10 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
         </Td>
         <Td>
           <NumberCell
-            value={supply.target_stock}
-            step="0.5"
-            onCommit={(target_stock) => actions.update(supply.id, { target_stock })}
+            value={supply.buffer_days}
+            step="1"
+            suffix=" T"
+            onCommit={(value) => actions.update(supply.id, { buffer_days: value ?? 0 })}
           />
         </Td>
         <Td>
@@ -668,9 +669,9 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   <Th width={widths.stock} separator align="right" onResize={resize("stock")}>
                     Bestand
                   </Th>
-                  <Th width={widths.soll} separator align="right" onResize={resize("soll")}>
-                    <span title="Soll-Bestand in Packungen – so viel willst du im Schrank haben; bis hierhin wird aufgefüllt">
-                      Soll
+                  <Th width={widths.vorlauf} separator align="right" onResize={resize("vorlauf")}>
+                    <span title="Vorlauf in Tagen – so viele Tage vor dem Leerstand soll gekauft werden">
+                      Vorlauf
                     </span>
                   </Th>
                   <Th width={widths.pack} separator align="right" onResize={resize("pack")}>
