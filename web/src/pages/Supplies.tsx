@@ -43,11 +43,11 @@ import {
 } from "../lib/hooks";
 import type { Supply } from "../types";
 
-const COL_KEYS = ["status", "name", "list", "stock", "pack", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
+const COL_KEYS = ["status", "name", "list", "stock", "soll", "pack", "rhythm", "next", "price", "subscription", "vendor", "action"] as const;
 type Smart = "all" | "order" | "check" | "soon" | "subscription";
 type View = "grid" | "cards";
 
-const COLUMNS = 11;
+const COLUMNS = 12;
 const VIEW_KEY = "homestead-vorrat-view";
 const WIDTHS_KEY = "homestead-vorrat-col-widths";
 const MIN_WIDTH = 48;
@@ -57,6 +57,7 @@ const DEFAULT_WIDTHS: Record<string, number> = {
   name: 150,
   list: 92,
   stock: 70,
+  soll: 60,
   pack: 116,
   rhythm: 160,
   next: 105,
@@ -352,6 +353,13 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
             value={supply.stock_now}
             step="0.1"
             onCommit={(value) => actions.setStock(supply.id, value ?? 0)}
+          />
+        </Td>
+        <Td>
+          <NumberCell
+            value={supply.target_stock}
+            step="0.5"
+            onCommit={(target_stock) => actions.update(supply.id, { target_stock })}
           />
         </Td>
         <Td>
@@ -660,6 +668,11 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
                   <Th width={widths.stock} separator align="right" onResize={resize("stock")}>
                     Bestand
                   </Th>
+                  <Th width={widths.soll} separator align="right" onResize={resize("soll")}>
+                    <span title="Soll-Bestand in Packungen – so viel willst du im Schrank haben; bis hierhin wird aufgefüllt">
+                      Soll
+                    </span>
+                  </Th>
                   <Th width={widths.pack} separator align="right" onResize={resize("pack")}>
                     <span title="Wie lange eine Packung ungefähr hält – grobe Schätzung, bis genug Käufe vorliegen">
                       Haltbarkeit
@@ -702,7 +715,7 @@ export function Supplies({ onMenu }: { onMenu: () => void }) {
               {rows.length > 0 && (
                 <tfoot>
                   <tr className="bg-raised">
-                    <td colSpan={7} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
+                    <td colSpan={8} className="px-2.5 py-2.5 text-[12px] font-medium text-muted">
                       Vorrat gesamt · pro Monat
                     </td>
                     <td colSpan={4} className="px-2.5 py-2.5 text-right text-[14px] font-semibold tabular-nums">

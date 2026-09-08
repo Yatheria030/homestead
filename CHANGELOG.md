@@ -7,6 +7,15 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.7.15] – 2026-09-08
+> tagline: Target stock in the table
+
+### Added
+
+* The supplies table has a new **Soll** column next to *Bestand*: the target
+  stock in packs, click-to-edit like the other cells. Same value as the
+  drawer's "Soll-Bestand" — it's what a restock fills up to.
+
 ## [0.7.14] – 2026-09-08
 > tagline: Pick the unit that fits
 
