@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./api";
-import type { Category, Expense, Pocket, Purchase, Supply, SupplyList } from "../types";
+import type {
+  Category,
+  Expense,
+  Pocket,
+  Purchase,
+  ScanSettingsPatch,
+  Supply,
+  SupplyList,
+} from "../types";
 
 export const useSummary = () => useQuery({ queryKey: ["summary"], queryFn: api.summary });
 export const useCategories = () =>
@@ -15,7 +23,17 @@ export const useShoppingList = () =>
 export const useTrash = () => useQuery({ queryKey: ["trash"], queryFn: api.trash });
 export const useBackups = () => useQuery({ queryKey: ["backups"], queryFn: api.backups });
 export const useScanConfig = () =>
-  useQuery({ queryKey: ["scan-config"], queryFn: api.scanConfig, staleTime: Infinity });
+  useQuery({ queryKey: ["scan-config"], queryFn: api.scanConfig });
+
+/** Scanner-Einstellungen speichern. Der Key geht nur raus, nie zurueck. */
+export function useScanSettings() {
+  const queryClient = useQueryClient();
+  const save = useMutation({
+    mutationFn: (body: ScanSettingsPatch) => api.updateScanConfig(body),
+    onSuccess: (config) => queryClient.setQueryData(["scan-config"], config),
+  });
+  return { save: (body: ScanSettingsPatch) => save.mutateAsync(body), saving: save.isPending };
+}
 export const useBarcodes = () => useQuery({ queryKey: ["barcodes"], queryFn: api.barcodes });
 /** Der Eingang fuellt sich von aussen (Station), also regelmaessig nachsehen. */
 export const useScanInbox = () =>

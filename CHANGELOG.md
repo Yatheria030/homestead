@@ -7,6 +7,32 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.8.1] – 2026-09-09
+> tagline: Scanner-Einstellungen im Dashboard
+
+### Added
+
+* **Karte „Scanner & KI"** in den Einstellungen: API-Key, Scan-Token,
+  Produktsuche, Modell und die Schwelle fürs ungefragte Buchen lassen sich dort
+  setzen – kein `.env`-Bearbeiten und kein Neustart mehr nötig.
+
+### Changed
+
+* Die Scanner-Einstellungen kommen jetzt aus **Umgebung → Datenbank → Standard**,
+  in dieser Rangfolge. Wer einen Wert per `.env` vorgibt, hat sich entschieden:
+  das Feld wird in der Oberfläche als „aus der .env" markiert und gesperrt,
+  damit man dort nichts einträgt, was nie greift. Bestehende Installationen
+  ändern ihr Verhalten also nicht.
+
+### Security
+
+* **Geheimnisse gehen nie zurück an den Browser.** API-Key und Scan-Token
+  werden geschrieben, gelesen wird nur „gesetzt: ja/nein" plus die letzten vier
+  Zeichen zum Wiedererkennen. Ein leeres Feld löscht den Wert.
+* Die Karte weist darauf hin, dass Homestead keine Anmeldung hat: wer die
+  Adresse erreicht, kann den Key ersetzen und auf fremde Kosten Anfragen
+  auslösen. Siehe SECURITY.md.
+
 ## [0.8.0] – 2026-09-09
 > tagline: Einkauf einscannen
 

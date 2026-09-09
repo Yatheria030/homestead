@@ -635,13 +635,37 @@ class BarcodeOut(ORMModel):
 
 class ScanConfigOut(BaseModel):
     """Was gerade aktiv ist - die Scan-Seite erklaert damit, warum ein Eingang
-    vorbelegt ist oder eben nicht."""
+    vorbelegt ist oder eben nicht, und die Einstellungen zeigen, woher jeder
+    Wert kommt.
+
+    Geheimnisse gehen hier nie mit: nur ob eines hinterlegt ist und dessen
+    letzte vier Zeichen, damit man erkennt, welcher Key gerade drin steckt.
+    """
 
     lookup_enabled: bool
     ai_enabled: bool
     ai_model: str | None
     auto_assign: float
     token_required: bool
+    api_key_set: bool = False
+    api_key_hint: str | None = None
+    scan_token_hint: str | None = None
+    # Feldname -> env | gespeichert | standard
+    sources: dict[str, str] = {}
+    # Per Umgebungsvariable vorgegeben, in der Oberflaeche nicht aenderbar
+    locked: list[str] = []
+
+
+class ScanSettingsIn(BaseModel):
+    """Was sich in den Einstellungen setzen laesst. Ein leerer String loescht
+    den gespeicherten Wert und faellt auf den Standard zurueck."""
+
+    anthropic_api_key: str | None = None
+    scan_token: str | None = None
+    product_lookup: bool | None = None
+    ai_resolver: bool | None = None
+    ai_model: str | None = None
+    ai_auto_assign: float | None = Field(default=None, ge=0, le=1)
 
 
 # --- Auswertung ---------------------------------------------------------

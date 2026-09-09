@@ -86,7 +86,9 @@ beauty, pet food), and with an `ANTHROPIC_API_KEY` Claude tidies the result up (
 becomes 5 kg) and decides whether it is an item you already keep — string matching is
 hopeless here, "Cat's Best Öko Plus" and "cat litter" share no word. Above a confidence
 threshold it books unasked; below it, the suggestion is waiting pre-filled in the inbox.
-Both steps are optional: without them the inbox still works, just without the pre-fill.
+Both steps are optional and configured under **Settings → Scanner & KI** (key, token,
+model, threshold) or via the environment, which takes precedence; without them the inbox
+still works, just without the pre-fill.
 `POST /api/scan-events` is what a scanner station talks to — an ESP32 by the pantry, a USB
 dongle on the host, a phone camera — taking buffered codes in one go and answering per
 code so the station can set its LED and only clear its buffer after a 200.
@@ -152,6 +154,7 @@ api/app/
                       /scan-events, /scan-inbox, /barcodes
   products.py         EAN lookup in the open Facts databases
   ai.py               optional Claude step: tidy up and match to an item
+  settings.py         runtime settings: environment > database > default
   backup.py           snapshots via SQLite's online backup API
   migrate.py          adds missing columns to existing databases
   seed.py             example household and supplies

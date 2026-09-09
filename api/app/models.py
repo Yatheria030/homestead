@@ -170,6 +170,23 @@ class Supply(Base):
     )
 
 
+class Setting(Base):
+    """Einstellungen, die zur Laufzeit aus der Oberflaeche kommen.
+
+    Alles hier hat auch eine Umgebungsvariable - und die schlaegt diesen Wert.
+    Wer eine Vorgabe per .env setzt, hat sich bewusst entschieden; die soll
+    nicht still aus dem Browser heraus ueberschreibbar sein.
+    """
+
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(60), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
 class Barcode(Base):
     """EAN eines Artikels. Einmal zugeordnet ist jeder weitere Scan ein Treffer -
     die Produktdatenbank und der KI-Schritt werden dann gar nicht mehr gefragt."""

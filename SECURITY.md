@@ -23,11 +23,24 @@ a scanner station by the pantry, say. Set `SCAN_TOKEN` and the station has to se
 `Authorization: Bearer <token>`; leave it empty and the endpoint is as open as the rest of
 the app. If anything reaches this endpoint from beyond your LAN, set the token.
 
-Two optional steps send data out of the house, and both can be turned off:
-`PRODUCT_LOOKUP=false` stops unknown EANs from being looked up in the open Facts
-databases, and leaving `ANTHROPIC_API_KEY` unset stops product names from being sent to
-the Claude API. Neither step ever sees your expenses, pockets, or purchase history — only
-the barcode and, for the matching step, the names of your supply items.
+Two optional steps send data out of the house, and both can be turned off — in
+**Settings → Scanner & KI**, or via `PRODUCT_LOOKUP` and `ANTHROPIC_API_KEY`. Neither step
+ever sees your expenses, pockets, or purchase history — only the barcode and, for the
+matching step, the names of your supply items.
+
+## The stored API key
+
+The Anthropic API key and the scan token can be set in the settings page, which stores
+them in the database. They are **write-only over the API**: a saved secret is never
+returned, only whether one is set and its last four characters.
+
+That protects the value in transit, not against someone who is already inside. Since there
+is no authentication, anyone who can reach the app can replace the key and run requests at
+your expense — and anyone with the database file or a backup snapshot can read it, because
+it is stored in plain text (it has to be usable). Two consequences: keep the app off the
+open internet as described above, and treat `./data/backups/*.db` as secret material once
+a key is stored. Setting the values through the environment instead keeps them out of the
+database entirely; environment values take precedence and are locked in the UI.
 
 ## Reporting a vulnerability
 

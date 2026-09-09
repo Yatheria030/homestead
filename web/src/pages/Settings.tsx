@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Database, Plus, Trash2 } from "lucide-react";
 import { Backups } from "../components/Backups";
 import { PageHeader } from "../components/PageHeader";
+import { ScannerSettings } from "../components/ScannerSettings";
 import { Button, Card, Chip, inputClass } from "../components/ui";
 import { PALETTE, PALETTE_NAMES, colorOf } from "../lib/format";
 import { useCategories, useMasterActions, usePockets } from "../lib/hooks";
@@ -75,7 +76,11 @@ export function SettingsPage({ onMenu }: { onMenu: () => void }) {
 
   return (
     <>
-      <PageHeader title="Einstellungen" subtitle="Pockets, Kategorien und Daten" onMenu={onMenu} />
+      <PageHeader
+        title="Einstellungen"
+        subtitle="Pockets, Kategorien, Scanner und Daten"
+        onMenu={onMenu}
+      />
 
       <div className="grid gap-4 p-4 lg:grid-cols-2">
         <Card padded={false}>
@@ -192,6 +197,8 @@ export function SettingsPage({ onMenu }: { onMenu: () => void }) {
             </Button>
           </div>
         </Card>
+
+        <ScannerSettings />
 
         <div className="lg:col-span-2">
           <Backups />

@@ -12,9 +12,12 @@ Hier wird nichts geradegebogen - das ist Aufgabe des KI-Schritts in ai.py.
 from __future__ import annotations
 
 import json
-import os
 import urllib.error
 import urllib.request
+
+from sqlalchemy.orm import Session
+
+from . import settings
 
 # Reihenfolge = Trefferwahrscheinlichkeit fuer einen Haushalt
 DATABASES = [
@@ -30,8 +33,8 @@ TIMEOUT = 6.0
 USER_AGENT = "Homestead/1.0 (self-hosted household inventory)"
 
 
-def enabled() -> bool:
-    return os.getenv("PRODUCT_LOOKUP", "true").lower() in {"1", "true", "yes"}
+def enabled(db: Session) -> bool:
+    return settings.flag(db, "product_lookup")
 
 
 def _fetch(url: str) -> dict | None:
@@ -45,9 +48,6 @@ def _fetch(url: str) -> dict | None:
 
 def lookup(ean: str) -> dict | None:
     """Erster Treffer aus den vier Datenbanken, oder None."""
-    if not enabled():
-        return None
-
     for host, label in DATABASES:
         data = _fetch(f"https://{host}/api/v2/product/{ean}.json?fields={FIELDS}")
         if not data or data.get("status") != 1:

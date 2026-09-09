@@ -185,12 +185,35 @@ export interface Barcode {
   created_at: string;
 }
 
+export type ScanSettingName =
+  | "anthropic_api_key"
+  | "scan_token"
+  | "product_lookup"
+  | "ai_resolver"
+  | "ai_model"
+  | "ai_auto_assign";
+
 export interface ScanConfig {
   lookup_enabled: boolean;
   ai_enabled: boolean;
   ai_model: string | null;
   auto_assign: number;
   token_required: boolean;
+  /* Geheimnisse kommen nie zurück – nur ob eins da ist und die letzten Zeichen */
+  api_key_set: boolean;
+  api_key_hint: string | null;
+  scan_token_hint: string | null;
+  sources: Record<string, "env" | "gespeichert" | "standard">;
+  locked: ScanSettingName[];
+}
+
+export interface ScanSettingsPatch {
+  anthropic_api_key?: string;
+  scan_token?: string;
+  product_lookup?: boolean;
+  ai_resolver?: boolean;
+  ai_model?: string;
+  ai_auto_assign?: number;
 }
 
 export interface Purchase {

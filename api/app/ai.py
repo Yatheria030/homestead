@@ -21,13 +21,15 @@ ohne Vorbelegung - die Station funktioniert also auch komplett ohne KI.
 from __future__ import annotations
 
 import functools
-import os
 
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-MODEL = os.getenv("AI_MODEL", "claude-opus-5")
-# Ab dieser Sicherheit wird ohne Rueckfrage auf den vorhandenen Artikel gebucht
-AUTO_ASSIGN = float(os.getenv("AI_AUTO_ASSIGN", "0.85"))
+from . import settings
+
+# Rueckfallwerte, falls in den Einstellungen nichts Brauchbares steht
+DEFAULT_MODEL = "claude-opus-5"
+DEFAULT_AUTO_ASSIGN = 0.85
 
 SYSTEM = """Du ordnest gescannte Produkte einem Haushalts-Vorratsschrank zu.
 
@@ -70,17 +72,25 @@ class Suggestion(BaseModel):
     reason: str = Field(default="", description="Ein kurzer Satz zur Begruendung")
 
 
-def enabled() -> bool:
-    if os.getenv("AI_RESOLVER", "true").lower() not in {"1", "true", "yes"}:
-        return False
-    return bool(os.getenv("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_AUTH_TOKEN"))
+def model(db: Session) -> str:
+    return settings.value(db, "ai_model") or DEFAULT_MODEL
 
 
-@functools.lru_cache(maxsize=1)
-def _client():
+def auto_assign(db: Session) -> float:
+    return settings.number(db, "ai_auto_assign", DEFAULT_AUTO_ASSIGN)
+
+
+def enabled(db: Session) -> bool:
+    return settings.flag(db, "ai_resolver") and bool(settings.value(db, "anthropic_api_key"))
+
+
+@functools.lru_cache(maxsize=4)
+def _client(api_key: str):
+    """Nach dem Key zwischengespeichert - er kann sich zur Laufzeit aendern,
+    wenn jemand in den Einstellungen einen neuen hinterlegt."""
     import anthropic
 
-    return anthropic.Anthropic()
+    return anthropic.Anthropic(api_key=api_key)
 
 
 def _catalogue(supplies, lists) -> str:
@@ -100,7 +110,7 @@ def _catalogue(supplies, lists) -> str:
     )
 
 
-def resolve(ean: str, product: dict, supplies, lists) -> Suggestion:
+def resolve(db: Session, ean: str, product: dict, supplies, lists) -> Suggestion:
     """Vorschlag zu einem Produkt. Wirft weiter, wenn der Aufruf scheitert -
     der Aufrufer haengt die Meldung an den Scan-Eingang, damit ein Ausfall der
     API sichtbar wird und nicht als "kein Treffer" durchgeht."""
@@ -117,8 +127,8 @@ def resolve(ean: str, product: dict, supplies, lists) -> Suggestion:
         "</produktdaten>"
     )
 
-    response = _client().messages.parse(
-        model=MODEL,
+    response = _client(settings.value(db, "anthropic_api_key")).messages.parse(
+        model=model(db),
         max_tokens=16000,
         system=SYSTEM,
         messages=[{"role": "user", "content": prompt}],

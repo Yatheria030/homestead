@@ -85,8 +85,10 @@ Haushalt, Drogerie, Tiernahrung), und mit einem `ANTHROPIC_API_KEY` räumt Claud
 Ergebnis auf („2 x 2,5kg“ wird zu 5 kg) und entscheidet, ob es ein bereits geführter
 Artikel ist – Textvergleich scheitert hier zuverlässig, „Cat's Best Öko Plus“ und
 „Katzenstreu“ haben kein Wort gemeinsam. Über einer Sicherheitsschwelle wird ungefragt
-gebucht, darunter wartet der Vorschlag vorbelegt im Eingang. Beide Schritte sind optional:
-ohne sie funktioniert der Eingang genauso, nur ohne Vorbelegung. `POST /api/scan-events`
+gebucht, darunter wartet der Vorschlag vorbelegt im Eingang. Beide Schritte sind optional
+und werden unter **Einstellungen → Scanner & KI** eingerichtet (Key, Token, Modell,
+Schwelle) oder per Umgebungsvariable, die Vorrang hat; ohne sie funktioniert der Eingang
+genauso, nur ohne Vorbelegung. `POST /api/scan-events`
 ist das, womit eine Scanner-Station spricht – ein ESP32 an der Vorratskammer, ein
 USB-Dongle am Host, eine Handy-Kamera: nimmt gepufferte Codes im Bund und antwortet je
 Code, damit die Station ihr Signal setzen und ihren Puffer erst nach einer 200 leeren kann.
@@ -157,6 +159,7 @@ api/app/
                       /scan-events, /scan-inbox, /barcodes
   products.py         EAN-Suche in den offenen Facts-Datenbanken
   ai.py               optionaler Claude-Schritt: aufräumen und zuordnen
+  settings.py         Laufzeit-Einstellungen: Umgebung > Datenbank > Standard
   backup.py           Snapshots über die Online-Backup-API von SQLite
   migrate.py          ergänzt fehlende Spalten in bestehenden Datenbanken
   seed.py             Startdaten aus der Excel + Beispiel-Vorrat

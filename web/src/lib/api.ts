@@ -8,6 +8,7 @@ import type {
   ScanConfig,
   ScanEvent,
   ScanResult,
+  ScanSettingsPatch,
   ShoppingGroup,
   Summary,
   Supply,
@@ -87,6 +88,7 @@ export const api = {
   shoppingList: () => request<ShoppingGroup[]>("/shopping-list"),
 
   scanConfig: () => request<ScanConfig>("/scan-config"),
+  updateScanConfig: (body: ScanSettingsPatch) => patch<ScanConfig>("/scan-config", body),
   scanInbox: () => request<ScanEvent[]>("/scan-inbox"),
   /** Denselben Weg wie die Station nehmen - ein Code im Bund von einem. */
   scan: (ean: string) =>
