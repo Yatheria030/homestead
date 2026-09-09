@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
+  Barcode,
   LayoutDashboard,
   Moon,
   Package,
@@ -30,6 +31,7 @@ const GROUPS = [
     items: [
       { to: "/vorrat", label: "Vorrat", icon: Package },
       { to: "/einkaufsliste", label: "Einkaufsliste", icon: ShoppingCart },
+      { to: "/scan", label: "Scan-Eingang", icon: Barcode },
       { to: "/abos", label: "Abos", icon: RefreshCw },
     ],
   },

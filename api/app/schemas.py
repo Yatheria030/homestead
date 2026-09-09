@@ -558,6 +558,92 @@ class ShoppingGroup(BaseModel):
     total: float
 
 
+# --- Scanner ------------------------------------------------------------
+
+ScanStatus = Literal["booked", "pending", "error"]
+
+
+class ScanIn(BaseModel):
+    """Ein gelesener Code. `packs` nur, wenn die Station selbst schon gebuendelt
+    hat - sonst zaehlt der Server mehrfache Scans derselben EAN zusammen."""
+
+    ean: str = Field(min_length=6, max_length=20)
+    packs: float = Field(default=1, gt=0)
+
+
+class ScanBatch(BaseModel):
+    """Was die Station schickt: alles, was seit dem letzten erfolgreichen POST
+    aufgelaufen ist. Gepuffert, damit ein WLAN-Aussetzer keinen Scan verliert."""
+
+    device: str | None = Field(default=None, max_length=80)
+    events: list[ScanIn] = Field(min_length=1, max_length=200)
+
+
+class ScanResult(BaseModel):
+    """Antwort je Code - die Station macht daraus ihr Signal: gruen gebucht,
+    gelb liegt im Eingang, rot Fehler."""
+
+    ean: str
+    status: ScanStatus
+    supply_id: int | None = None
+    supply_name: str | None = None
+    packs: float = 1
+    scan_event_id: int | None = None
+    message: str | None = None
+
+
+class ScanBatchOut(BaseModel):
+    results: list[ScanResult]
+
+
+class ScanEventOut(ORMModel):
+    id: int
+    ean: str
+    device: str | None
+    scanned_at: datetime
+    packs: float
+    status: str
+    product: dict | None
+    suggestion: dict | None
+    note: str | None
+
+
+class ScanAssignIn(BaseModel):
+    """Eingang zuordnen: Kauf verbuchen und die EAN kuenftig direkt erkennen."""
+
+    supply_id: int
+    packs: float | None = Field(default=None, gt=0)
+    remember: bool = True
+
+
+class ScanCreateIn(SupplyIn):
+    """Eingang als neuen Artikel anlegen - SupplyIn plus die Scan-Extras."""
+
+    packs: float | None = Field(default=None, gt=0)
+    remember: bool = True
+
+
+class BarcodeOut(ORMModel):
+    ean: str
+    supply_id: int
+    supply_name: str | None = None
+    packs: float
+    label: str | None
+    source: str
+    created_at: datetime
+
+
+class ScanConfigOut(BaseModel):
+    """Was gerade aktiv ist - die Scan-Seite erklaert damit, warum ein Eingang
+    vorbelegt ist oder eben nicht."""
+
+    lookup_enabled: bool
+    ai_enabled: bool
+    ai_model: str | None
+    auto_assign: float
+    token_required: bool
+
+
 # --- Auswertung ---------------------------------------------------------
 
 class PocketSummary(BaseModel):

@@ -76,6 +76,21 @@ stock included, and a card view that adds a cycle progress bar and price per uni
 **Shopping list** — everything that has reached its buying date, grouped by vendor, with
 quantity and total. Ticking an item books the purchase and restarts its rhythm.
 
+**Scanner** — scan what you carried home and the purchase books itself. A known barcode
+goes straight through: no network, no AI, just the item and its rhythm restarted. Several
+scans of the same item on one day add up to *one* purchase, because three packs from one
+trip logged as three purchases zero days apart would wreck the measured rhythm. Unknown
+codes land in the **scan inbox**, where you assign them once — from then on that EAN is
+known. Optionally the code is looked up in the four open Facts databases (food, household,
+beauty, pet food), and with an `ANTHROPIC_API_KEY` Claude tidies the result up ("2 x 2,5kg"
+becomes 5 kg) and decides whether it is an item you already keep — string matching is
+hopeless here, "Cat's Best Öko Plus" and "cat litter" share no word. Above a confidence
+threshold it books unasked; below it, the suggestion is waiting pre-filled in the inbox.
+Both steps are optional: without them the inbox still works, just without the pre-fill.
+`POST /api/scan-events` is what a scanner station talks to — an ESP32 by the pantry, a USB
+dongle on the host, a phone camera — taking buffered codes in one go and answering per
+code so the station can set its LED and only clear its buffer after a 200.
+
 **Subscriptions** — recurring costs from both expenses and supplies in one place, per
 month and per year, including whether a subscription covers real consumption and what it
 saves.
@@ -129,16 +144,20 @@ app is being written to — unlike copying the file.
 Dockerfile            builds the frontend (Node), then the API image (Python)
 docker-compose.yml
 api/app/
-  models.py           categories, pockets, expenses, lists, supplies, purchases
+  models.py           categories, pockets, expenses, lists, supplies, purchases,
+                      barcodes, scan events
   schemas.py          input/output plus derived values (share, rhythm, coverage)
   routers/            /expenses, /supplies, /supply-lists, /shopping-list,
-                      /pockets, /categories, /summary, /backups
+                      /pockets, /categories, /summary, /backups,
+                      /scan-events, /scan-inbox, /barcodes
+  products.py         EAN lookup in the open Facts databases
+  ai.py               optional Claude step: tidy up and match to an item
   backup.py           snapshots via SQLite's online backup API
   migrate.py          adds missing columns to existing databases
   seed.py             example household and supplies
 web/src/
   pages/              overview, expenses, pockets, supplies, shopping list,
-                      subscriptions, settings
+                      scan inbox, subscriptions, settings
   components/         inline-editable grid, supply detail panel, cards, chips
 ```
 

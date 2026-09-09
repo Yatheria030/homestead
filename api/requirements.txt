@@ -3,3 +3,5 @@ uvicorn[standard]==0.34.0
 sqlalchemy==2.0.36
 pydantic==2.10.4
 python-multipart==0.0.20
+# Nur fuer den optionalen KI-Schritt im Scan-Eingang - ohne API-Key ungenutzt
+anthropic==1.4.0

@@ -16,6 +16,19 @@ is financial data.
 Also worth knowing: the backup endpoints can download and overwrite the entire database.
 They deserve the same consideration as the rest of the app.
 
+## The scanner endpoint
+
+`POST /api/scan-events` is the one place where a device writes from outside the browser —
+a scanner station by the pantry, say. Set `SCAN_TOKEN` and the station has to send it as
+`Authorization: Bearer <token>`; leave it empty and the endpoint is as open as the rest of
+the app. If anything reaches this endpoint from beyond your LAN, set the token.
+
+Two optional steps send data out of the house, and both can be turned off:
+`PRODUCT_LOOKUP=false` stops unknown EANs from being looked up in the open Facts
+databases, and leaving `ANTHROPIC_API_KEY` unset stops product names from being sent to
+the Claude API. Neither step ever sees your expenses, pockets, or purchase history — only
+the barcode and, for the matching step, the names of your supply items.
+
 ## Reporting a vulnerability
 
 Please report security issues through a private GitHub security advisory rather than a

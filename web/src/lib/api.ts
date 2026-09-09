@@ -1,9 +1,13 @@
 import type {
   BackupInfo,
+  Barcode,
   Category,
   Expense,
   Pocket,
   Purchase,
+  ScanConfig,
+  ScanEvent,
+  ScanResult,
   ShoppingGroup,
   Summary,
   Supply,
@@ -81,6 +85,22 @@ export const api = {
   deleteSupplyList: (id: number) => remove(`/supply-lists/${id}`),
 
   shoppingList: () => request<ShoppingGroup[]>("/shopping-list"),
+
+  scanConfig: () => request<ScanConfig>("/scan-config"),
+  scanInbox: () => request<ScanEvent[]>("/scan-inbox"),
+  /** Denselben Weg wie die Station nehmen - ein Code im Bund von einem. */
+  scan: (ean: string) =>
+    post<{ results: ScanResult[] }>("/scan-events", { device: "Web", events: [{ ean }] }).then(
+      (data) => data.results[0],
+    ),
+  assignScan: (id: number, body: { supply_id: number; packs?: number }) =>
+    post<Supply>(`/scan-inbox/${id}/assign`, body),
+  createFromScan: (id: number, body: Partial<Supply> & { packs?: number }) =>
+    post<Supply>(`/scan-inbox/${id}/create`, body),
+  dismissScan: (id: number) => remove(`/scan-inbox/${id}`),
+
+  barcodes: () => request<Barcode[]>("/barcodes"),
+  deleteBarcode: (ean: string) => remove(`/barcodes/${ean}`),
 
   backups: () => request<BackupInfo[]>("/backups"),
   createBackup: (note?: string) => post<BackupInfo>("/backups", { note: note ?? null }),

@@ -14,6 +14,12 @@ export const useShoppingList = () =>
   useQuery({ queryKey: ["shopping-list"], queryFn: api.shoppingList });
 export const useTrash = () => useQuery({ queryKey: ["trash"], queryFn: api.trash });
 export const useBackups = () => useQuery({ queryKey: ["backups"], queryFn: api.backups });
+export const useScanConfig = () =>
+  useQuery({ queryKey: ["scan-config"], queryFn: api.scanConfig, staleTime: Infinity });
+export const useBarcodes = () => useQuery({ queryKey: ["barcodes"], queryFn: api.barcodes });
+/** Der Eingang fuellt sich von aussen (Station), also regelmaessig nachsehen. */
+export const useScanInbox = () =>
+  useQuery({ queryKey: ["scan-inbox"], queryFn: api.scanInbox, refetchInterval: 10_000 });
 
 /** Nach jeder Aenderung auch die Auswertung neu ziehen. */
 function useInvalidating<TArgs extends unknown[], TResult>(
@@ -84,6 +90,34 @@ export function useSupplyActions() {
       restock.mutate([id, { packs, price, purchased_on }]),
     setStock: (id: number, packs: number) => setStock.mutate([id, packs]),
     recount: (id: number, packs: number) => recount.mutate([id, packs]),
+  };
+}
+
+/** Scan-Eingang: zuordnen, neu anlegen, verwerfen - und selbst scannen.
+ *  Jede Aktion bucht einen Kauf, also veralten Vorrat und Einkaufsliste mit. */
+export function useScanActions() {
+  const keys = ["scan-inbox", "barcodes", "supplies", "shopping-list", "purchases"];
+  const scan = useInvalidating((ean: string) => api.scan(ean), keys);
+  const assign = useInvalidating(
+    (id: number, body: { supply_id: number; packs?: number }) => api.assignScan(id, body),
+    keys,
+  );
+  const create = useInvalidating(
+    (id: number, body: Partial<Supply> & { packs?: number }) => api.createFromScan(id, body),
+    [...keys, "supply-lists"],
+  );
+  const dismiss = useInvalidating((id: number) => api.dismissScan(id), ["scan-inbox"]);
+  const forget = useInvalidating((ean: string) => api.deleteBarcode(ean), ["barcodes"]);
+
+  return {
+    /** Warten auf die Antwort - das Eingabefeld meldet zurueck, was passiert ist. */
+    scan: (ean: string) => scan.mutateAsync([ean]),
+    scanning: scan.isPending,
+    assign: (id: number, supply_id: number, packs?: number) =>
+      assign.mutate([id, { supply_id, packs }]),
+    create: (id: number, body: Partial<Supply> & { packs?: number }) => create.mutate([id, body]),
+    dismiss: (id: number) => dismiss.mutate([id]),
+    forget: (ean: string) => forget.mutate([ean]),
   };
 }
 

@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from .db import Base, SessionLocal, engine
 from . import backup
 from .migrate import migrate
-from .routers import backups, expenses, master, summary, supplies
+from .routers import backups, expenses, master, scan, summary, supplies
 from .routers.supplies import purge_old_trash_loop
 from .seed import seed
 
@@ -28,6 +28,7 @@ api = FastAPI(title="Homestead API")
 api.include_router(master.router)
 api.include_router(expenses.router)
 api.include_router(supplies.router)
+api.include_router(scan.router)
 api.include_router(summary.router)
 api.include_router(backups.router)
 

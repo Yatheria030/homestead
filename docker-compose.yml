@@ -15,6 +15,13 @@ services:
       BACKUP_DIR: /data/backups
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
       BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      # Scanner: Token fuer die Station, Produktsuche und optionaler KI-Schritt
+      SCAN_TOKEN: ${SCAN_TOKEN:-}
+      PRODUCT_LOOKUP: ${PRODUCT_LOOKUP:-true}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AI_RESOLVER: ${AI_RESOLVER:-true}
+      AI_MODEL: ${AI_MODEL:-claude-opus-5}
+      AI_AUTO_ASSIGN: ${AI_AUTO_ASSIGN:-0.85}
       TZ: Europe/Berlin
     volumes:
       - ./data:/data

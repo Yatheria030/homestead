@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Date,
     DateTime,
@@ -167,6 +168,59 @@ class Supply(Base):
     purchases: Mapped[list["Purchase"]] = relationship(
         back_populates="supply", cascade="all, delete-orphan"
     )
+
+
+class Barcode(Base):
+    """EAN eines Artikels. Einmal zugeordnet ist jeder weitere Scan ein Treffer -
+    die Produktdatenbank und der KI-Schritt werden dann gar nicht mehr gefragt."""
+
+    __tablename__ = "barcodes"
+
+    ean: Mapped[str] = mapped_column(String(20), primary_key=True)
+    supply_id: Mapped[int] = mapped_column(ForeignKey("supplies.id", ondelete="CASCADE"))
+    # Ein Scan entspricht so vielen Packungen - fuer Gebinde, die einzeln
+    # ausgezeichnet sind, aber immer als Bund im Regal stehen.
+    packs: Mapped[float] = mapped_column(Numeric(10, 2, asdecimal=False), default=1)
+    # Was beim Zuordnen gefunden wurde, nur zur Anzeige in der Verwaltung
+    label: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # manual | lookup | ai - woher die Zuordnung kam
+    source: Mapped[str] = mapped_column(String(20), default="manual")
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    supply: Mapped["Supply"] = relationship()
+
+
+class ScanEvent(Base):
+    """Ein Scan, der keinem Artikel zugeordnet werden konnte - der Scan-Eingang.
+
+    Bekannte EANs landen hier nie, die werden sofort verbucht. Hier liegt nur,
+    was eine Entscheidung braucht: unbekannter Code, oder ein KI-Vorschlag, der
+    nicht sicher genug war, um ihn ungefragt zu buchen.
+    """
+
+    __tablename__ = "scan_events"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ean: Mapped[str] = mapped_column(String(20))
+    device: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    scanned_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    # Derselbe Code mehrfach hintereinander gescannt = mehrere Packungen,
+    # nicht mehrere Eingaenge.
+    packs: Mapped[float] = mapped_column(Numeric(10, 2, asdecimal=False), default=1)
+    # pending | resolved | dismissed
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+
+    # Was die Produktdatenbank hergab und was der KI-Schritt daraus gemacht hat -
+    # beides nur Vorschlag, bis jemand im Scan-Eingang zustimmt.
+    product: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    suggestion: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Warum die Recherche nichts ergab (kein Treffer, KI aus, Fehler)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    resolved_supply_id: Mapped[int | None] = mapped_column(
+        ForeignKey("supplies.id", ondelete="SET NULL"), nullable=True
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class Purchase(Base):

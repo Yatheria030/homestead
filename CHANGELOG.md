@@ -7,6 +7,38 @@ Optional: a `> tagline: ...` line right under the version heading becomes the Gi
 release title ("0.7.8 – <tagline>"), matching the long-running "0.7.x – Kurztitel"
 scheme. Without one, the release is titled with the bare version number.
 
+## [0.8.0] – 2026-09-09
+> tagline: Einkauf einscannen
+
+### Added
+
+* **Barcode-Scanner.** Ein gescannter Code bucht den Kauf. Bekannte EANs gehen
+  ohne Umweg durch – ohne Netz, ohne KI; die Zuordnung liegt in der neuen
+  Tabelle `barcodes`. Mehrere Scans desselben Artikels an einem Tag werden zu
+  **einem** Kauf zusammengezählt, sonst würde ein Einkauf mit drei Packungen
+  als drei Käufe im Abstand von null Tagen den gemessenen Rhythmus verfälschen.
+* **`POST /api/scan-events`** für die Scanner-Station (ESP32, USB-Dongle am
+  Host, Handy-Kamera): nimmt gepufferte Codes im Bund und antwortet je Code mit
+  `booked` / `pending` / `error`, damit die Station ihr Signal setzen und ihren
+  Puffer erst nach einer 200 leeren kann. Mit gesetztem `SCAN_TOKEN` braucht sie
+  einen Bearer-Token – die erste Stelle in Homestead, an der ein Gerät von außen
+  schreibt.
+* **Scan-Eingang** als neue Seite: alles, was eine Entscheidung braucht. Pro
+  Eintrag zuordnen (Kauf buchen + EAN merken), als neuen Artikel anlegen oder
+  verwerfen. Ein Eingabefeld oben nimmt Codes direkt entgegen – ein Handscanner
+  im Tastaturmodus tippt den Code und drückt selbst Enter, damit funktioniert
+  jedes Bluetooth-Gerät ohne weitere Einrichtung.
+* **Produktsuche** für unbekannte Codes in den vier offenen Facts-Datenbanken
+  (Lebensmittel, Haushalt, Drogerie, Tiernahrung). Abschaltbar über
+  `PRODUCT_LOOKUP=false`, dann verlässt keine EAN das Haus.
+* **Optionaler KI-Schritt** (`ANTHROPIC_API_KEY`): räumt die Rohdaten auf –
+  aus „2 x 2,5kg“ wird Inhalt 5 kg – und entscheidet, ob das Produkt ein bereits
+  geführter Artikel ist. Textvergleich scheitert hier zuverlässig: „Cat's Best
+  Öko Plus“ und „Katzenstreu“ haben kein Wort gemeinsam. Ab `AI_AUTO_ASSIGN`
+  (Standard 0,85) wird ohne Rückfrage gebucht, darunter landet der Vorschlag
+  vorbelegt im Scan-Eingang. Ohne Key läuft alles wie vorher, nur ohne
+  Vorbelegung – die Station funktioniert also auch ganz ohne KI.
+
 ## [0.7.18] – 2026-09-08
 > tagline: Pick the pack unit
 

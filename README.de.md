@@ -74,6 +74,23 @@ Kaufzyklus und Preis je Einheit.
 **Einkaufsliste** – alles, was seinen Kauftermin erreicht hat, gebündelt nach Anbieter,
 mit Menge und Summe. Abhaken bucht den Kauf und startet den Rhythmus neu.
 
+**Scanner** – einscannen, was nach Hause getragen wurde, und der Kauf verbucht sich
+selbst. Ein bekannter Barcode geht direkt durch: ohne Netz, ohne KI, nur Artikel und
+Rhythmus neu gestartet. Mehrere Scans desselben Artikels an einem Tag zählen zu *einem*
+Kauf zusammen – drei Packungen aus einem Einkauf als drei Käufe im Abstand von null Tagen
+zu führen würde den gemessenen Rhythmus verfälschen. Unbekannte Codes landen im
+**Scan-Eingang**, wo sie einmal zugeordnet werden; ab dann ist die EAN bekannt. Optional
+wird der Code in den vier offenen Facts-Datenbanken nachgeschlagen (Lebensmittel,
+Haushalt, Drogerie, Tiernahrung), und mit einem `ANTHROPIC_API_KEY` räumt Claude das
+Ergebnis auf („2 x 2,5kg“ wird zu 5 kg) und entscheidet, ob es ein bereits geführter
+Artikel ist – Textvergleich scheitert hier zuverlässig, „Cat's Best Öko Plus“ und
+„Katzenstreu“ haben kein Wort gemeinsam. Über einer Sicherheitsschwelle wird ungefragt
+gebucht, darunter wartet der Vorschlag vorbelegt im Eingang. Beide Schritte sind optional:
+ohne sie funktioniert der Eingang genauso, nur ohne Vorbelegung. `POST /api/scan-events`
+ist das, womit eine Scanner-Station spricht – ein ESP32 an der Vorratskammer, ein
+USB-Dongle am Host, eine Handy-Kamera: nimmt gepufferte Codes im Bund und antwortet je
+Code, damit die Station ihr Signal setzen und ihren Puffer erst nach einer 200 leeren kann.
+
 **Abos** sammelt beides an einer Stelle: laufende Kosten aus den Ausgaben plus die
 Vorratsartikel im Abo, hochgerechnet auf Monat und Jahr – inklusive der Frage, ob ein
 Spar-Abo den tatsächlichen Verbrauch deckt und was es gegenüber dem Normalpreis spart.
@@ -132,16 +149,20 @@ Ein Container, ein Port. FastAPI serviert die API und das gebaute Frontend.
 Dockerfile            Frontend bauen (Node) → API-Image (Python)
 docker-compose.yml
 api/app/
-  models.py           Kategorien, Pockets, Ausgaben, Listen, Vorrat, Kaufhistorie
+  models.py           Kategorien, Pockets, Ausgaben, Listen, Vorrat, Kaufhistorie,
+                      Barcodes, Scan-Eingang
   schemas.py          Ein-/Ausgabe + berechnete Felder (Anteil, Reichweite, Abo-Deckung)
   routers/            /expenses, /supplies, /supply-lists, /shopping-list,
-                      /pockets, /categories, /summary, /backups
+                      /pockets, /categories, /summary, /backups,
+                      /scan-events, /scan-inbox, /barcodes
+  products.py         EAN-Suche in den offenen Facts-Datenbanken
+  ai.py               optionaler Claude-Schritt: aufräumen und zuordnen
   backup.py           Snapshots über die Online-Backup-API von SQLite
   migrate.py          ergänzt fehlende Spalten in bestehenden Datenbanken
   seed.py             Startdaten aus der Excel + Beispiel-Vorrat
 web/src/
-  pages/              Übersicht, Ausgaben, Pockets, Vorrat, Einkaufsliste, Abos,
-                      Einstellungen
+  pages/              Übersicht, Ausgaben, Pockets, Vorrat, Einkaufsliste,
+                      Scan-Eingang, Abos, Einstellungen
   components/         Grid mit Inline-Editing, Vorrats-Detailpanel, Karten, Chips
 ```
 

@@ -247,7 +247,7 @@ export function DurationCell({
 }
 
 /** Gängige Einheiten fürs Auswahlmenü; eigene bleiben über „Andere…“ möglich. */
-const PACK_UNITS = [
+export const PACK_UNITS = [
   "Stück",
   "Paar",
   "g",

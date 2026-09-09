@@ -131,6 +131,68 @@ export interface ShoppingGroup {
   total: number;
 }
 
+/** Was die Produktdatenbank zu einer EAN hergab. */
+export interface ScannedProduct {
+  name: string;
+  brand: string | null;
+  quantity: string | null;
+  categories: string | null;
+  database: string;
+  url: string;
+}
+
+/** Der KI-Vorschlag: bereinigte Felder plus Zuordnung zu einem bestehenden Artikel. */
+export interface ScanSuggestion {
+  name: string;
+  brand: string;
+  units_per_pack: number;
+  unit: string;
+  match_supply_id: number;
+  confidence: number;
+  list_id: number;
+  reason: string;
+}
+
+export interface ScanEvent {
+  id: number;
+  ean: string;
+  device: string | null;
+  scanned_at: string;
+  packs: number;
+  status: string;
+  product: ScannedProduct | null;
+  suggestion: ScanSuggestion | null;
+  note: string | null;
+}
+
+export interface ScanResult {
+  ean: string;
+  status: "booked" | "pending" | "error";
+  supply_id: number | null;
+  supply_name: string | null;
+  packs: number;
+  scan_event_id: number | null;
+  message: string | null;
+}
+
+export interface Barcode {
+  ean: string;
+  supply_id: number;
+  supply_name: string | null;
+  packs: number;
+  label: string | null;
+  source: string;
+  created_at: string;
+}
+
+export interface ScanConfig {
+  lookup_enabled: boolean;
+  ai_enabled: boolean;
+  ai_model: string | null;
+  auto_assign: number;
+  token_required: boolean;
+}
+
 export interface Purchase {
   id: number;
   supply_id: number;
